@@ -124,12 +124,12 @@
                 const strong = statusDiv.querySelector("strong");
                 if (strong) 
                 {
-                    strong.innerText = (data.Status || "Unknown").toUpperCase();  // use correct casing from your model
+                    strong.innerText = (data.status || "Unknown").toUpperCase();  // use correct casing from your model
                 }
 
                 statusDiv.classList.remove("red", "yellow", "green", "gray");
             
-                const newClass = (data.Status || "").toLowerCase();
+                const newClass = (data.status || "").toLowerCase();
                 if (newClass === "alert")      statusDiv.classList.add("red");
                 else if (newClass === "warning") statusDiv.classList.add("yellow");
                 else if (newClass === "ok")    statusDiv.classList.add("green");
@@ -147,16 +147,11 @@
                 }
             };
 
-            updateDot(`smk-${code}`, data.SmokeDetected);
-            updateDot(`ink-${code}`, data.IntrusionDetected);
-            updateDot(`wat-${code}`, data.WaterLeakDetected);
+            updateDot(`smk-${shelter}`, data.SmokeDetected);
+            updateDot(`ink-${shelter}`, data.IntrusionDetected);
+            updateDot(`wat-${shelter}`, data.WaterLeakDetected);
 
-            if (data.status === "Alert")
-                statusDiv.classList.add("red");
-            else if (data.status === "Warning")
-                statusDiv.classList.add("yellow");
-            else
-                statusDiv.classList.add("green");
+            
         
         });
 
