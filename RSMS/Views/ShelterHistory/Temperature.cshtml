@@ -1,0 +1,22 @@
+﻿@model List<TemperatureView>
+
+    <h2> Temperature History for @ViewBag.ShelterCode</h2>
+   <a asp-action="Index" asp-controller="Dashboard" class="btn btn-info">Return to Dashboard</a>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Temperature</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var temp in Model)
+        {
+            <tr>
+                <td>@temp.Time</td>
+                <td>@temp.Value</td>
+            </tr>
+            
+        }
+    </tbody>
+    </table>

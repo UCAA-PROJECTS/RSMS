@@ -1,0 +1,397 @@
+﻿@model List<DashboardModelView>
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+   <h1 class="main-title">REMOTE SHELTER MONITORING SYSTEM</h1>
+
+    <div class="top-bar">
+        <div class="top-left">
+            <select class="site-selector">
+                <option>Other Sites ▼</option>
+                <!-- Add more options as needed -->
+            </select>
+        <a asp-action="GetCSV" asp-controller="Logs" class="log-button" id="logSelector">Download Logs</a>
+            <span class="menu-item">Configurations</span>
+        </div>
+        <div class="top-right">
+            <span class="status-title">Components Status & Availability</span>
+            <div class="notification-bell">
+                <span class="bell-icon">🔔</span>
+                <span class="badge">1</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="shelter-grid">
+            
+            @foreach (var shelter in Model)
+            {
+            var bannerClass = shelter.Status switch
+            {
+                ShelterStatus.Alert => "red",
+                ShelterStatus.Warning => "yellow",
+                ShelterStatus.Ok => "green",
+                _ => "gray"
+
+            };
+            var statusText = shelter.Status.ToString().ToUpper();
+            <!-- GP SHELTER -->
+            <div class="shelter-card alert">
+                <div class="shelter-header">
+                    <h2>@shelter.ShelterName</h2>
+                </div>
+                <div class="status-banner @bannerClass" id="status-banner-@shelter.ShelterCode">
+                    <span>STATUS</span>
+                    <strong>@statusText</strong>
+                </div>
+                <button class="view-feed-btn">VIEW LIVE FEED</button>
+
+                <div class="metrics-row">
+                    <div class="metric">
+                        <span class="icon">🌡️</span>
+                        <a asp-action="Temperature" asp-controller="ShelterHistory" asp-route-code="@shelter.ShelterCode">
+                            <div>Temperature<br><strong id="temp-@shelter.ShelterCode">@shelter.Temperature °C</strong></div>
+                        </a>
+                    </div>
+                    <div class="metric">
+                        <span class="icon">💧</span>
+                        <div>Humidity<br><strong id="hum-@shelter.ShelterCode">@shelter.Humidity%</strong></div>
+                    </div>
+                </div>
+
+                <div class="indicators-grid">
+                    <div class="indicator red">
+                        <div>Intrusion</div>
+                        <div class="dot @(shelter.IntrusionDetected ? "red-dot" : "green-dot")" id="ink-@shelter.ShelterCode"></div>
+                    </div>
+                    <div class="indicator">
+                        <div>Smoke</div>
+                        <div class="dot @(shelter.SmokeDetected ? "red-dot" : "green-dot")" id="smk-@shelter.ShelterCode"></div>
+                    </div>
+                    <div class="indicator">
+                        <div>W.Leakage</div>
+                        <div class="dot @(shelter.WaterLeakDetected ? "red-dot" : "green-dot")" id="wat-@shelter.ShelterCode"></div>
+                    </div>
+                </div>
+            </div>
+            }
+
+        </div>
+    </div>
+
+    @section Scripts
+    {
+    <script src="/lib/microsoft-signalr/signalr.js"></script>
+
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/shelterHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("ShelterUpdated", data => {
+
+            console.log("SignalR update:", data);
+
+            const shelter = data.ShelterCode;
+
+            // Update temperature & humidity
+            document.getElementById(`temp-${shelter}`).innerText =
+                `${data.Temperature} °C`;
+
+            document.getElementById(`hum-${shelter}`).innerText =
+                `${data.Humidity} %`;
+
+            document.getElementById(`smk-${shelter}`).innerText =
+               "dot " + (data.SmokeDetected ? "red-dot" : "green-dot");
+
+             document.getElementById(`ink-${shelter}`).innerText =
+                data.IntrusionDetected;
+
+              document.getElementById(`wat-${shelter}`).innerText =
+                data.WaterLeakDetected;
+
+
+
+
+            // Update status banner
+            const statusDiv = document.getElementById(`status-banner-${shelter}`);
+
+            if (statusDiv) 
+            {
+                const strong = statusDiv.querySelector("strong");
+                if (strong) 
+                {
+                    strong.innerText = (data.Status || "Unknown").toUpperCase();  // use correct casing from your model
+                }
+
+                statusDiv.classList.remove("red", "yellow", "green", "gray");
+            
+                const newClass = (data.Status || "").toLowerCase();
+                if (newClass === "alert")      statusDiv.classList.add("red");
+                else if (newClass === "warning") statusDiv.classList.add("yellow");
+                else if (newClass === "ok")    statusDiv.classList.add("green");
+                else                           statusDiv.classList.add("gray");
+            }
+                      // Boolean indicators — change dot color only
+                const updateDot = (id, isDetected, detectedClass = "red-dot", clearClass = "green-dot") => {
+                const dot = document.getElementById(id);
+                if (dot) {
+                    dot.classList.remove("red-dot", "green-dot", "yellow-dot"); // remove all possible
+                    dot.classList.add(isDetected ? detectedClass : clearClass);
+                    // Optional: clear text or set minimal label
+                    dot.innerText = "";  // ← clean look (recommended)
+                    // dot.innerText = isDetected ? "Yes" : "No";  // ← if you want text
+                }
+            };
+
+            updateDot(`smk-${code}`, data.SmokeDetected);
+            updateDot(`ink-${code}`, data.IntrusionDetected);
+            updateDot(`wat-${code}`, data.WaterLeakDetected);
+
+            if (data.status === "Alert")
+                statusDiv.classList.add("red");
+            else if (data.status === "Warning")
+                statusDiv.classList.add("yellow");
+            else
+                statusDiv.classList.add("green");
+        
+        });
+
+            
+       
+
+        connection.start()
+            .then(() => console.log("✅ SignalR connected"))
+            .catch(err => console.error("❌ SignalR error:", err));
+    </script>
+
+    <script>
+        document.getElementById("logSelector").addEventListener("change", function () {
+            if (this.value === "csv") {
+                window.location.href = "/Logs/GetCSV";
+                this.selectedIndex = 0; // reset dropdown
+            }
+        });
+    </script>
+
+
+    }
+
+<style>
+    /* Basic link style: no underline, looks like menu item */
+    .log-link {
+        color: white; /* matches your top-bar text */
+        text-decoration: none; /* removes underline */
+        padding: 6px 12px; /* similar spacing to your selects */
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .log-link:hover {
+        background: #333; /* subtle hover effect */
+        text-decoration: none; /* ensure no underline on hover */
+    }
+
+    /* Optional: Make it look more like a button */
+    .log-button {
+        color: white;
+        background: #444; /* dark background like your selects */
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        border: 1px solid #666;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .log-button:hover {
+        background: #555;
+        text-decoration: none;
+    }
+
+    /* Optional: Add arrow or icon if you want to keep ▼ feel */
+    .log-link::after {
+        content: " ▼";
+        font-size: 0.9em;
+    }
+    .dashboard-container {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+        min-height: 100vh;
+    }
+
+    .main-title {
+        text-align: center;
+        color: #333;
+        margin: 10px 0 25px;
+        font-size: 2.1rem;
+        letter-spacing: 1px;
+    }
+
+    .top-bar {
+        background: #000;
+        color: white;
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        border-radius: 6px;
+    }
+
+    .top-left {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .site-selector, .log-selector {
+        background: #222;
+        color: white;
+        border: 1px solid #444;
+        padding: 6px 12px;
+        border-radius: 4px;
+    }
+
+    .menu-item {
+        padding: 6px 12px;
+    }
+
+    .top-right {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .notification-bell {
+        position: relative;
+    }
+
+    .bell-icon {
+        font-size: 1.4rem;
+    }
+
+    .badge {
+        position: absolute;
+        top: -8px;
+        right: -10px;
+        background: #ff4444;
+        color: white;
+        font-size: 0.75rem;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .shelter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* fallback for smaller screens */
+        gap: 20px;
+    }
+    .shelter-card {
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+        overflow: hidden;
+        padding: 0 0 20px;
+    }
+
+    .shelter-header {
+        background: #2c3e50;
+        color: white;
+        padding: 14px 20px;
+        text-align: center;
+        font-size: 1.35rem;
+    }
+
+    .status-banner {
+        text-align: center;
+        padding: 14px;
+        font-size: 1.4rem;
+        font-weight: bold;
+        margin: 15px 20px 20px;
+        border-radius: 8px;
+        color: white;
+    }
+
+    .status-banner.red    { background: #c0392b; }
+    .status-banner.yellow { background: #f39c12; }
+    .status-banner.green  { background: #27ae60; }
+
+    .view-feed-btn {
+        display: block;
+        margin: 0 auto 25px;
+        padding: 12px 30px;
+        background: #2980b9;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 1.05rem;
+        cursor: pointer;
+    }
+
+    .view-feed-btn:hover {
+        background: #3498db;
+    }
+
+    .metrics-row {
+        display: flex;
+        justify-content: center;
+        gap: 60px;
+        margin-bottom: 30px;
+    }
+
+    .metric a {
+        color: inherit; /* keep text color same as before */
+        text-decoration: none; /* no underline */
+    }
+
+    .metric a:hover {
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    .metric .icon {
+        font-size: 2.2rem;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .indicators-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px 10px;
+        padding: 0 25px;
+    }
+
+    .indicator {
+        text-align: center;
+        padding: 10px;
+        border-radius: 6px;
+        background: #f8f9fa;
+    }
+
+    .indicator.yellow {
+        background: #fff9e6;
+    }
+
+    .dot {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        margin: 8px auto 0;
+    }
+
+    .red-dot    { background: #e74c3c; }
+    .yellow-dot { background: #f1c40f; }
+    .green-dot  { background: #2ecc71; }
+
+</style>
