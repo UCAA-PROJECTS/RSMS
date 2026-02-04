@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using RSMS.Data;
 using RSMS.Models;
 using RSMS.Services;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RSMS.Controllers
 {
@@ -44,5 +45,22 @@ namespace RSMS.Controllers
             }).ToList();
             return View(model);
         }
+
+        [HttpGet("/api/history")]
+        public async Task<IActionResult> GetHistory(string code, string type)
+        {
+            var query = _context.Readings
+                .Where(r => r.ShelterCode == code)
+                .OrderByDescending(r => r.TimeStamp)
+                .Take(100);
+
+            var data = type == "temperature"
+                ? await query.Select(r => new { r.TimeStamp, Value = r.Temperature }).ToListAsync()
+                : await query.Select(r => new { r.TimeStamp, Value = r.Humidity }).ToListAsync();
+
+            return Json(data);
+        }
+
+
     }
 }
