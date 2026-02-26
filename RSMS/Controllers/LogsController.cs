@@ -23,11 +23,11 @@ namespace RSMS.Controllers
 
             var sb = new StringBuilder();
 
-            sb.AppendLine("ShelterCode,Temperature,Humidity,Smoke Detected,Intrusion Detected,Water Leakage Detected,TimeStamp");
+            sb.AppendLine("ShelterCode,Temperature,Humidity,Smoke Detected,Intrusion Detected,TimeStamp");
 
             foreach (var r in data) 
             {
-                sb.AppendLine($"{r.ShelterCode},{r.Temperature},{r.Humidity},{r.SmokeDetected},{r.IntrusionDetected},{r.WaterLeakDetected},{r.TimeStamp}");
+                sb.AppendLine($"{r.ShelterCode},{r.Temperature},{r.Humidity},{r.SmokeDetected},{r.IntrusionDetected},{r.TimeStamp}");
             }
 
             var bytes = Encoding.UTF8.GetBytes(sb.ToString());

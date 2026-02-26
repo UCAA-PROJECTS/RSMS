@@ -14,10 +14,10 @@ namespace RSMS.Controllers
     public class SensorController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly IShelterStatusService _shelterStatusService;
+        private readonly IShelterService _shelterStatusService;
         private readonly IHubContext<ShelterHub> _hub;
 
-        public SensorController(ApplicationDbContext context, IShelterStatusService shelterStatusService, IHubContext<ShelterHub> hub)
+        public SensorController(ApplicationDbContext context, IShelterService shelterStatusService, IHubContext<ShelterHub> hub)
         {
             _context = context;
             _shelterStatusService = shelterStatusService;
@@ -25,49 +25,49 @@ namespace RSMS.Controllers
 
         }
 
-        [HttpPost]
-        public async Task<IActionResult> PostReading([FromBody] SensorInputDTO dto)
-        {
-            var shelter = await _context.Shelters.
-                FirstOrDefaultAsync(s => s.ShelterCode == dto.ShelterCode);
+        //[HttpPost]
+        //public async Task<IActionResult> PostReading([FromBody] SensorInputDTO dto)
+        //{
+        //    var shelter = await _context.Shelters.
+        //        FirstOrDefaultAsync(s => s.ShelterCode == dto.ShelterCode);
 
-            if (shelter == null)
-            {
-                return BadRequest("Invalid Shelter Code");
-            }
+        //    if (shelter == null)
+        //    {
+        //        return BadRequest("Invalid Shelter Code");
+        //    }
 
-            var reading = new SensorReading
-            {
-                ShelterCode = shelter.ShelterCode,
-                Temperature = dto.Temperature,
-                Humidity = dto.Humidity,
-                SmokeDetected = dto.SmokeDetected,
-                IntrusionDetected = dto.IntrusionDetected,
-                WaterLeakDetected = dto.WaterLeakDetected,
+        //    var reading = new SensorReading
+        //    {
+        //        ShelterCode = shelter.ShelterCode,
+        //        Temperature = dto.Temperature,
+        //        Humidity = dto.Humidity,
+        //        SmokeDetected = dto.SmokeDetected,
+        //        IntrusionDetected = dto.IntrusionDetected,
+        //        WaterLeakDetected = dto.WaterLeakDetected,
 
-            };
-            _context.Readings.Add(reading);
-            await _context.SaveChangesAsync();
-            Console.WriteLine("Sensor reading saved!");
+        //    };
+        //    _context.Readings.Add(reading);
+        //    await _context.SaveChangesAsync();
+        //    Console.WriteLine("Sensor reading saved!");
 
-            var status = _shelterStatusService.Evaluate(reading);
+        //    var status = _shelterStatusService.Evaluate(reading);
 
-            await _hub.Clients.All.SendAsync("ShelterUpdated", new
-            {
-                shelter.ShelterCode,
-                shelter.ShelterName,
-                reading.Temperature,
-                reading.Humidity,
-                reading.SmokeDetected,
-                reading.IntrusionDetected,
-                reading.WaterLeakDetected,
-                status = status.ToString()
-
-
-            });
-            return Ok();
+        //    await _hub.Clients.All.SendAsync("ShelterUpdated", new
+        //    {
+        //        shelter.ShelterCode,
+        //        shelter.ShelterName,
+        //        reading.Temperature,
+        //        reading.Humidity,
+        //        reading.SmokeDetected,
+        //        reading.IntrusionDetected,
+        //        reading.WaterLeakDetected,
+        //        status = status.ToString()
 
 
-        }
+        //    });
+        //    return Ok();
+
+
+        //}
     }
 }

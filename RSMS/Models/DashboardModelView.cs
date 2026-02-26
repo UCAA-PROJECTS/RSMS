@@ -9,7 +9,7 @@
         public ShelterStatus Status { get; set; }
         public bool SmokeDetected { get; set; }
         public bool IntrusionDetected { get; set; }
-        public bool WaterLeakDetected { get; set; }
+        //public bool WaterLeakDetected { get; set; }
       
     }
 }

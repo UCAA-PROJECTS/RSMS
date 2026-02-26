@@ -4,9 +4,20 @@ namespace RSMS.Hubs
 {
     public class ShelterHub:Hub
     {
-        public async Task BroadCastData(object payload) 
+        //Client joins a specific shelter group
+        public async Task JoinShelterGroup(string shelterCode) 
         {
-            await Clients.All.SendAsync("ShelterUpdated", payload);
+            if (string.IsNullOrWhiteSpace(shelterCode))
+                return;
+            await Groups.AddToGroupAsync(Context.ConnectionId, shelterCode);
+        }
+
+        //Optional: Client leaves a specific shelter group
+        public async Task LeaveShelterGroup(string shelterCode) 
+        {
+            if(string.IsNullOrWhiteSpace(shelterCode))
+                return;
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, shelterCode);
         }
     }
 }

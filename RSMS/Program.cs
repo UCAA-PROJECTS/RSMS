@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RSMS.Data;
 using RSMS.Hubs;
+using RSMS.Models;
 using RSMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,8 +16,8 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
-
-builder.Services.AddScoped<IShelterStatusService, ShelterStatusService>();
+builder.Services.AddScoped<IShelterService, ShelterStatusService>(); 
+builder.Services.AddHostedService<MqttSubscriber>();
 builder.Services.AddSignalR();
 
 var app = builder.Build();

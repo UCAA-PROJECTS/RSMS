@@ -13,7 +13,7 @@ namespace RSMS.Models
         public double Humidity { get; set; }
         public bool SmokeDetected { get; set; }
         public bool IntrusionDetected { get; set; }
-        public bool WaterLeakDetected { get; set; }
+        //public bool WaterLeakDetected { get; set; }
         public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
     }
 }
