@@ -23,6 +23,10 @@
 		<div class="menu-item">
 			<i class="fas fa-battery-full"></i> Battery
 		</div>
+		<div>
+			<a asp-controller="Dashboard" asp-action="Index" class="btn download-btn">Dashboard</a>
+		</div>
+		
 	</div>
 	<!--Main Area-->
 	<div class="main-content">
@@ -44,11 +48,11 @@
 					<i class="fas fa-thermometer-half icon-orange"></i>
 				</div>
 				<div class="temp-value" id="currentTemp">
-					24.8 °C
+					-- °C
 				</div>
 
-				<div class="status-pill warning">
-					Status: Warning
+				<div class="status-pill status-unknown" id="tempStatus">
+					Status:Unknown
 				</div>
 
 			</div>
@@ -113,35 +117,109 @@
 
 </div>
 
+@section Scripts{
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<script src="/Scripts/TempChart.js"></script>
+
+<script src="/lib/microsoft-signalr/signalr.js"></script>
 <script>
+	const shelterCode = "@ViewBag.ShelterCode";
 
-	const ctx = document.getElementById("tempChart");
+	const connection = new signalR.HubConnectionBuilder()
+		.withUrl("/shelterHub")
+		.withAutomaticReconnect()
+		.build();
 
-	new Chart(ctx, {
-		type:"line",
-		data:{
-			labels:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
-			datasets:[{
-				label:"temperature",
-				data:[26,29,28,27,25,24,23],
-				borderColor:"#5a6acf",
-				tension:0.4,
-				fill:false
-			}]
-		},
-		options:{
-			plugins:{
-				maintainAspectRatio:false,
-				legend:{display:true}
-			}
-		}
+	async function joinGroup() {
+		await connection.invoke("JoinShelterGroup", shelterCode);
+		console.log("Joined shelter group:", shelterCode);
+	}
+
+	connection.onreconnected(async () => {
+		await joinGroup();
 	});
 
+	connection.on("ShelterUpdated", data => {
+
+		if (data.shelterCode !== shelterCode) return;
+
+		console.log("Live update received:", data);
+
+		/* -------------------------
+			Update Temperature Value
+		--------------------------*/
+
+		const tempElement = document.getElementById("currentTemp");
+
+		if (tempElement) {
+			tempElement.innerText = `${data.temperature} °C`;
+		}
+
+		/* -------------------------
+			Update Status Badge
+		--------------------------*/
+
+		const statusElement = document.getElementById("tempStatus");
+
+		if (statusElement) {
+
+			const status = (data.temperatureStatus || "unknown").toLowerCase();
+
+			statusElement.innerText = `Status: ${data.temperatureStatus}`;
+
+			statusElement.classList.remove(
+				"status-ok",
+				"status-warning",
+				"status-alert",
+				"status-unknown"
+			);
+
+			if (status === "alert")
+				statusElement.classList.add("status-alert");
+
+			else if (status === "warning")
+				statusElement.classList.add("status-warning");
+
+			else if (status === "ok")
+				statusElement.classList.add("status-ok");
+
+			else
+				statusElement.classList.add("status-unknown");
+		}
+
+		/* -------------------------
+			Update Chart
+		--------------------------*/
+
+		if (window.tempChart) {
+
+			const now = new Date().toLocaleTimeString();
+
+			window.tempChart.data.labels.push(now);
+			window.tempChart.data.datasets[0].data.push(data.temperature);
+
+			if (window.tempChart.data.labels.length > 20) {
+				window.tempChart.data.labels.shift();
+				window.tempChart.data.datasets[0].data.shift();
+			}
+
+			window.tempChart.update();
+		}
+
+	});
+
+	connection.start()
+		.then(async () => {
+			console.log("SignalR connected");
+			await joinGroup();
+		})
+		.catch(err => console.error("SignalR connection error:", err));
+		 
 </script>
 
+}
 <style>
 	.app-container{
 		display:flex;
@@ -182,7 +260,6 @@
 		color: #5563de;
 		font-weight: 600;
 	}
-
 	/*Main Content*/
 	.main-content{
 	flex:1;
@@ -296,5 +373,22 @@
 	.history-table th{
 		text-align:left;
 			background: #fafafa;
+	}
+
+	/*Status Colors*/
+	.status-alert {
+		background: #d9534f;
+	}
+
+	.status-warning {
+		background: #f0ad4e;
+	}
+
+	.status-ok {
+		background: #28a745;
+	}
+
+	.status-unknown {
+		background: gray;
 	}
 </style>

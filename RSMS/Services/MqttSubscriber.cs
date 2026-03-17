@@ -140,6 +140,7 @@ namespace RSMS.Services
                             overallStatus = statusResult.OverallStatus.ToString(),
 
 
+
                         });
 
                     _logger.LogInformation("Shelter {Shelter} updated via MQTT.", shelter.ShelterCode);
