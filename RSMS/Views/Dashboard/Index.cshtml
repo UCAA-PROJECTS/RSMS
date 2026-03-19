@@ -7,15 +7,11 @@
 
     <div class="ucaa-left">
         <img src="~/images/ucaa.png" alt="UCAA Logo" class="ucaa-logo" />
-        <div class="ucaa-text">
-            <div class="ucaa-name">Uganda Civil Aviation Authority</div>
-            <div class="ucaa-acronym">UCAA DANS</div>
-        </div>
     </div>
 
     <div class="ucaa-center">
         <h2 class="system-title">
-            REMOTE SHELTER MONITORING SYSTEM
+            Remote Shelter Monitoring System
         </h2>
     </div>
 
@@ -38,20 +34,30 @@
             <button class="nav-link">Configurations ▾</button>
         </div>
     </div>
-
+    
     <div class="nav-right">
-        <div class="system-health">
-            <span>System Health</span>
-        </div>
+        @* < class="nav-item dropdown"> *@
+
+        <button class="nav-link system-health-btn">System Health</button>
+
+        @* <div class="system-health"> *@
+        @* <span>System Health</span> *@
+        @* </div> *@
 
         <div class="notification">
-            <span class="bell">🔔</span>
-            <span class="notif-badge critical">6</span>
-            <span class="notif-badge warning">8</span>
+            @* <span class="bell">🔔</span> *@
+
+            @* use a better bell *@
+
+            <img src="~/images/bell2.jpeg" alt="Notifications" class="bell"/>
+            <span class="notif-badge critical">0</span>
+            <span class="notif-badge warning">0</span>
         </div>
     </div>
 
 </div>
+
+
 <div class="dashboard-container">
     <div class="shelter-grid">
 
@@ -76,6 +82,7 @@
                         @statusText
                     </span>
                 </div>
+                
 
                 <a class="view-feed-btn"
                    href="http://rsms:CaaRsms@10.10.40.249:8889/dvorShelter"
@@ -101,49 +108,128 @@
 
                         <div class="dot gray-dot"
                              id="temp-dot-@shelter.ShelterCode">
+
+                                @* default green dot *@
+                        <div class="dot green-dot"></div>
+
                         </div>
 
                     </a>
 
-                    <div class="sensor-box">
+                    @* trying the same appearance for humidity like that of temperature *@
+                    <a asp-controller="ShelterHistory"
+                       asp-action="Humidity"
+                       asp-route-code="@shelter.ShelterCode"
+                       class="sensor-box sensor-button">
+
                         <div class="sensor-title">Humidity</div>
                         <i class="fas fa-droplet"></i>
-                        <div class="sensor-value history-link"
-                             id="hum-@shelter.ShelterCode"
-                             data-type="humidity"
-                             data-code="@shelter.ShelterCode">
+
+                        <div class="sensor-value"
+                             id="hum-@shelter.ShelterCode">
                             @shelter.Humidity %
                         </div>
+
                         <div class="dot gray-dot"
                              id="hum-dot-@shelter.ShelterCode">
-                        </div>
-                    </div>
 
-                    <div class="sensor-box">
-                        <div>Shelter Access</div>
-                        <i class="fas fa-door-open"></i>
-                        <div class="dot gray-dot" 
-                             id="ink-dot-@shelter.ShelterCode"></div>
-                    </div>
-
-                    <div class="sensor-box">
-                        <div>Smoke</div>
-                        <i class="fas fa-fire"></i>
-                        <div class="dot gray-dot"
-                             id="smk-dot-@shelter.ShelterCode"></div>
-                    </div>
-
-                    <div class="sensor-box">
-                        <div>Battery</div>
-                        <i class="fas fa-battery-full"></i>
-                        <div class="dot yellow-dot"></div>
-                    </div>
-
-                    <div class="sensor-box">
-                        <div>Stabilizer</div>
-                        <i class="fas fa-plug"></i>
+                             @* default green dot *@
                         <div class="dot green-dot"></div>
-                    </div>
+
+                        </div>
+
+                    </a>
+
+                    @* trying the same appearance for shelter access like that of temperature *@
+
+<!-- Shelter Access -->
+                    <a asp-controller="ShelterHistory"
+                    asp-action="ShelterAccess"
+                    asp-route-code="@shelter.ShelterCode"
+                    class="sensor-box sensor-button">
+
+                        <div class="sensor-title">Shelter Access</div>
+                        <i class="fas fa-door-open"></i>
+
+                        <div class="sensor-value"
+                            id="access-@shelter.ShelterCode">
+                            --
+                        </div>
+
+                        <div class="dot gray-dot"
+                            id="ink-dot-@shelter.ShelterCode"></div>
+
+                            @* default green dot *@
+                        <div class="dot green-dot"></div>
+
+                    </a>
+
+                    <!-- Smoke -->
+                    <a asp-controller="ShelterHistory"
+                    asp-action="Smoke"
+                    asp-route-code="@shelter.ShelterCode"
+                    class="sensor-box sensor-button">
+
+                        <div class="sensor-title">Smoke</div>
+                        <i class="fas fa-fire"></i>
+
+                        <div class="sensor-value"
+                            id="smoke-@shelter.ShelterCode">
+                            --
+                        </div>
+
+                        <div class="dot gray-dot"
+                            id="smk-dot-@shelter.ShelterCode"></div>
+
+                            @* default green dot *@
+                        <div class="dot green-dot"></div>
+                    </a>
+
+                    <!-- Battery -->
+
+                    <a asp-controller="ShelterHistory"
+                    asp-action="Battery"
+                    asp-route-code="@shelter.ShelterCode"
+                    class="sensor-box sensor-button">
+
+                        <div class="sensor-title">Battery</div>
+                        <i class="fas fa-battery-full"></i>
+
+                        <div class="sensor-value"
+                            id="battery-@shelter.ShelterCode">
+                            --
+                        </div>
+
+                        <div class="dot gray-dot"
+                            id="bat-dot-@shelter.ShelterCode"></div>
+
+                            @* default green dot *@
+                        <div class="dot green-dot"></div>
+                    </a>
+
+                    <!-- Stabilizer -->
+                    <a asp-controller="ShelterHistory"
+                    asp-action="Stabilizer"
+                    asp-route-code="@shelter.ShelterCode"
+                    class="sensor-box sensor-button">
+
+                        <div class="sensor-title">Stabilizer</div>
+                        <i class="fas fa-bolt"></i>
+
+                        <div class="sensor-value"
+                            id="stabilizer-@shelter.ShelterCode">
+                            --
+                        </div>
+
+                        @* default dot is green not grey *@
+                        
+                        @* <div class="dot gray-dot"
+                            id="stab-dot-@shelter.ShelterCode"></div> *@
+
+                            @* default green dot *@
+
+                        <div class="dot green-dot"></div>
+                    </a>
 
                 </div>
 
@@ -182,105 +268,103 @@
         // -----------------------------
         // Receive updates
         // -----------------------------
-        connection.on("ShelterUpdated", data => {
+connection.on("ShelterUpdated", data => {
 
-            console.log("SignalR update:", data);
+    console.log("SignalR update:", data);
 
-            const shelter = data.shelterCode;
-            if (!shelter) return;
+    const shelter = data.shelterCode;
+    if (!shelter) return;
 
+    function updateValue(elementId, value) {
+        const el = document.getElementById(elementId);
+        if (el) el.innerText = value ?? "--";
+    }
 
-            function updateValue(elementId, value) {
-            const el = document.getElementById(elementId);
-            if (el) el.innerText = value ?? "--";
-            }
+    function updateDot(dotId, status) {
 
+        const dot = document.getElementById(dotId);
+        if (!dot) return;
 
-            function updateDot(dotId, status) {
+        dot.classList.remove(
+            "red-dot",
+            "yellow-dot",
+            "green-dot",
+            "gray-dot"
+        );
 
-            const dot = document.getElementById(dotId);
-            if (!dot) return;
+        switch ((status || "").toLowerCase()) {
+            case "alert":
+                dot.classList.add("red-dot");
+                break;
 
-            dot.classList.remove(
-                "red-dot",
-                "yellow-dot",
-                "green-dot",
-                "gray-dot"
-            );
+            case "warning":
+                dot.classList.add("yellow-dot");
+                break;
 
-            switch ((status || "").toLowerCase()) {
-                case "alert":
-                    dot.classList.add("red-dot");
-                    break;
+            case "ok":
+                dot.classList.add("green-dot");
+                break;
 
-                case "warning":
-                    dot.classList.add("yellow-dot");
-                    break;
+            default:
+                dot.classList.add("gray-dot");
+                break;
+        }
+    }
 
-                case "ok":
-                    dot.classList.add("green-dot");
-                    break;
+    function updateBadge(badgeId, status) {
 
-                default:
-                    dot.classList.add("gray-dot");
-                    break;
-                }
-            }
-            function updateBadge(badgeId, status) {
+        const badge = document.getElementById(badgeId);
+        if (!badge) return;
 
-            const badge = document.getElementById(badgeId);
-            if (!badge) return;
+        const normalized = (status || "unknown").toLowerCase();
 
-            const normalized = (status || "unknown").toLowerCase();
+        badge.innerText = normalized.toUpperCase();
 
-            badge.innerText = normalized.toUpperCase();
+        badge.classList.remove(
+            "status-alert",
+            "status-warning",
+            "status-ok",
+            "status-unknown"
+        );
 
-            badge.classList.remove(
-                "status-alert",
-                "status-warning",
-                "status-ok",
-                "status-unknown"
-            );
+        switch (normalized) {
+            case "alert":
+                badge.classList.add("status-alert");
+                break;
 
-            switch (normalized) {
-                case "alert":
-                    badge.classList.add("status-alert");
-                    break;
+            case "warning":
+                badge.classList.add("status-warning");
+                break;
 
-                case "warning":
-                    badge.classList.add("status-warning");
-                    break;
+            case "ok":
+                badge.classList.add("status-ok");
+                break;
 
-                case "ok":
-                    badge.classList.add("status-ok");
-                    break;
+            default:
+                badge.classList.add("status-unknown");
+                break;
+        }
+    }
 
-                default:
-                    badge.classList.add("status-unknown");
-                    break;
-                }
-            }
+    // -----------------------------
+    // Update numeric values
+    // -----------------------------
+    updateValue(`temp-${shelter}`, `${data.temperature} °C`);
+    updateValue(`hum-${shelter}`, `${data.humidity} %`);
 
-            // -----------------------------
-            // Update numeric values
-            // -----------------------------
-            updateValue(`temp-${shelter}`, `${data.temperature} °C`);
-            updateValue(`hum-${shelter}`, `${data.humidity} %`);
-            // -----------------------------
-            // Independent sensor dots
-            // -----------------------------
-            updateDot(`temp-dot-${shelter}`, data.temperatureStatus);
-            updateDot(`hum-dot-${shelter}`, data.humidityStatus);
-            updateDot(`ink-dot-${shelter}`, data.intrudeStatus);
-            updateDot(`smk-dot-${shelter}`, data.smokeStatus);
+    // -----------------------------
+    // Independent sensor dots
+    // -----------------------------
+    updateDot(`temp-dot-${shelter}`, data.temperatureStatus);
+    updateDot(`hum-dot-${shelter}`, data.humidityStatus);
+    updateDot(`ink-dot-${shelter}`, data.intrudeStatus);
+    updateDot(`smk-dot-${shelter}`, data.smokeStatus);
 
-            // -----------------------------
-            // Overall badge (separate logic)
-            // -----------------------------
-            updateBadge(`status-banner-${shelter}`, data.overallStatus);
-        });
-
-            
+    // -----------------------------
+    // Overall badge
+    // -----------------------------
+    updateBadge(`status-banner-${shelter}`, data.overallStatus);
+});
 
             // -----------------------------
             // Start connection
@@ -294,348 +378,3 @@
 
     </script>
 }
-
-<style>
-    /* ---------- UCAA HEADER ---------- */
-
-    .ucaa-header {
-        background: #ffffff;
-        padding: 18px 40px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 2px solid #e5e5e5;
-    }
-
-    .ucaa-left {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .ucaa-logo {
-        height: 55px;
-    }
-
-    .ucaa-text {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .ucaa-name {
-        font-size: 16px;
-        font-weight: 600;
-        color: #333;
-    }
-
-    .ucaa-acronym {
-        font-size: 13px;
-        color: #777;
-    }
-
-    .ucaa-center {
-        text-align: center;
-        flex: 1;
-    }
-
-    .system-title {
-        font-size: 26px;
-        font-weight: 700;
-        letter-spacing: 2px;
-        margin: 0;
-        color: #1f2d3d;
-    }
-
-    .ucaa-right {
-        min-width: 180px;
-        text-align: right;
-    }
-
-    .system-meta {
-        font-size: 14px;
-        color: #666;
-    }
-    body {
-        background: #f4f4f4;
-        font-family: "Segoe UI", Arial, sans-serif;
-    }
-
-    .main-title {
-        text-align: center;
-        font-size: 34px;
-        letter-spacing: 2px;
-        margin: 25px 0 20px;
-        font-weight: 600;
-    }
-
-    .dashboard-container {
-        padding: 20px 40px;
-    }
-
-    .shelter-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 30px;
-    }
-
-    .shelter-card {
-        background: white;
-        border-radius: 6px;
-        padding: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-
-    .shelter-title {
-        text-align: center;
-        font-weight: 600;
-        margin-bottom: 20px;
-    }
-
-    .status-row {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-
-    .status-label {
-        font-weight: 500;
-        color: #555;
-    }
-
-    .status-badge {
-        padding: 6px 18px;
-        border-radius: 4px;
-        font-weight: bold;
-        color: white;
-        font-size: 14px;
-    }
-
-    .status-alert {
-        background: #d9534f;
-    }
-
-    .status-warning {
-        background: #f0ad4e;
-    }
-
-    .status-ok {
-        background: #28a745;
-    }
-
-    .status-unknown {
-        background: gray;
-    }
-
-    .view-feed-btn {
-        display: block;
-        text-align: center;
-        background: #2e6bdc;
-        color: white;
-        padding: 10px;
-        border-radius: 4px;
-        text-decoration: none;
-        margin: 10px auto 25px;
-        width: 70%;
-        font-weight: 500;
-    }
-
-        .view-feed-btn:hover {
-            background: #1f55b5;
-            text-decoration: none;
-        }
-
-    .sensor-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
-
-    .sensor-box {
-        background: #fafafa;
-        border-radius: 5px;
-        padding: 15px;
-        text-align: center;
-        position: relative;
-        border: 1px solid #eee;
-    }
-
-    .sensor-title {
-        font-size: 14px;
-        color: #666;
-    }
-
-    .sensor-value {
-        font-size: 20px;
-        font-weight: 600;
-        margin-top: 5px;
-    }
-
-    .sensor-button {
-        text-decoration: none;
-        padding: 8px 18px;
-        border-radius: 20px;
-        border: none;
-        font-weight: 600;
-        color: inherit;
-        cursor: pointer;
-        /* Shadow */
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
-        /* Smooth effect */
-        transition: all 0.2s ease-in-out;
-    }
-
-        .sensor-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
-        }
-
-    .dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-    }
-
-    .red-dot {
-        background: #d9534f;
-    }
-
-    .green-dot {
-        background: #28a745;
-    }
-
-    .yellow-dot {
-        background: #f0ad4e;
-    }
-
-    .gray-dot {
-        background: #9e9e9e;
-    }
-
-    /* ---------- TOP NAVIGATION ---------- */
-
-.top-nav {
-    background: #ffffff;
-    border-bottom: 1px solid #e0e0e0;
-    padding: 12px 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.nav-left,
-.nav-center,
-.nav-right {
-    display: flex;
-    align-items: center;
-}
-
-.nav-center {
-    gap: 35px;
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.brand-logo {
-    height: 42px;
-}
-
-.brand-title {
-    font-size: 20px;
-    font-weight: 600;
-    letter-spacing: 1px;
-}
-
-.nav-item {
-    position: relative;
-}
-
-.nav-link {
-    background: none;
-    border: none;
-    font-size: 15px;
-    font-weight: 500;
-    color: #333;
-    cursor: pointer;
-    text-decoration: none;
-    padding: 6px 10px;
-    transition: 0.2s ease;
-}
-
-.nav-link:hover {
-    color: #2e6bdc;
-}
-
-.system-health {
-    font-weight: 500;
-    margin-right: 25px;
-    color: #444;
-}
-
-.notification {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.bell {
-    font-size: 20px;
-    margin-right: 10px;
-}
-
-.notif-badge {
-    font-size: 12px;
-    font-weight: bold;
-    padding: 3px 7px;
-    border-radius: 12px;
-    color: white;
-    margin-left: 4px;
-}
-
-.notif-badge.critical {
-    background: #d9534f;
-}
-
-.notif-badge.warning {
-    background: #f0ad4e;
-}
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 9999;
-        inset: 0;
-        background: rgba(0,0,0,0.6);
-    }
-
-    .modal-content {
-        background: white;
-        margin: 5% auto;
-        padding: 20px;
-        width: 70%;
-        border-radius: 8px;
-    }
-
-    .close-btn {
-        float: right;
-        font-size: 28px;
-        cursor: pointer;
-    }
-
-    .history-link {
-        cursor: pointer;
-    }
-
-        .history-link:hover {
-            text-decoration: underline;
-            color: #2980b9;
-        }
-
-</style>

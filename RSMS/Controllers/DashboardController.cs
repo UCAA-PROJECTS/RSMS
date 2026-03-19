@@ -45,6 +45,11 @@ namespace RSMS.Controllers
                     Humidity = latest?.Humidity ?? 0,
                     SmokeDetected = latest?.SmokeDetected ?? false,
                     IntrusionDetected = latest?.IntrusionDetected ?? false,
+
+
+                    // added ShelterAccess to the model and set it to false if no reading is available
+                    // ShelterAccess = latest?.ShelterAccess ?? false,
+
                     //WaterLeakDetected = latest?.WaterLeakDetected ?? false,
                     Status = latest == null
                         ? ShelterStatus.Ok
