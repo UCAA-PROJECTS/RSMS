@@ -1,0 +1,296 @@
+	.app-container{
+		display:flex;
+		min-height:100vh;
+		background: #f5f6fa;
+		font-family:"Segoe UI",sans-serif;
+	}
+	.sidebar{
+		width:200px;
+		background: white;
+		border-right: 1px solid #e5e5e5;
+		padding: 20px 0;
+		min-height: 100vh;
+	}
+
+	.sidebar ul {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    color: #555;
+}
+	.menu-item i{
+	margin-right:10px;
+	}
+	.menu-item:hover{
+			background: #f1f3ff;
+	}
+	.menu-item.active{
+		background: #eef1ff;
+		color: #5563de;
+		font-weight: 600;
+	}
+
+	/*Main Content*/
+	.main-content{
+	flex:1;
+	padding:30px;
+	}
+
+	/*Header*/
+	.page-header{
+	display:flex;
+	justify-content:space-between;
+	align-items:center;
+	color: #5563de;
+	margin-bottom:25px;
+	}
+
+	/*Cards*/
+
+	/* new */
+		
+	.cards-row {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 25px; /* Space between graph row and table */
+    /* align-items: stretch; Keeps cards at their natural height */
+}
+
+	.temp-card {
+    flex: 0 0 300px;
+    /* height: 100%; Matches the height of the chart card automatically */
+	justify-content: center; /* Centers the temp value vertically */
+    height: auto; /* Allows it to be stretched by the parent */
+}
+
+/* .chart-card {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+} */
+
+	/* setting the actual height of your graph area */
+/* .chart-container {
+    position: relative;
+    height: 300px; Adjust this number to make the graph taller/shorter
+    width: 100%;
+} */
+
+/* the chart header design to keep the options above */
+.chart-header {
+    position: relative;
+    z-index: 10; /* Keeps buttons above the graph canvas */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+
+
+	.card{
+		background:white;
+		padding:25px;
+		border-radius:8px;
+		padding-bottom: 20px;
+		box-shadow:0 2px 10px rgba(0,0,0,0.08);
+
+	}
+
+/* styling the graph options */
+.filter-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.quick-filters {
+    display: flex;
+    background: #f1f3ff;
+    padding: 4px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    gap: 5px;
+}
+
+/* activating the buttons */
+
+.filter-btn {
+    flex-shrink: 0;        /* Prevents the browser from squeezing the button */
+    white-space: nowrap;   /* Forces "Last 14 Days" to stay on one line */
+    cursor: pointer;
+    border: none;
+    background: #f1f3ff;
+    padding: 6px 14px;     /* Ensure enough internal padding */
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+
+.filter-btn:hover {
+    background: #e0e4ff;
+}
+
+
+/* .filter-btn.active {
+    background: white;
+    color: #5a6acf;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    font-weight: 600;
+} */
+
+.filter-btn.active {
+    background: #5a6acf;
+    color: white;
+}
+
+.custom-range {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    padding: 5px 10px;
+    border-radius: 8px;
+}
+
+.custom-range input {
+    border: none;
+    outline: none;
+    font-size: 13px;
+    width: 160px;
+    color: #555;
+}
+
+
+
+
+	/* .chart-card canvas{
+	max-width:100%;
+    padding: 0;
+	} */
+
+    /* make graph bigger */
+    /* #tempChart {
+    height: 90% !important; 
+    width: 100% !important; 
+	} */
+
+	.card i{
+	margin-left:40px
+	}
+
+	/*Temperature Value*/
+	.temp-value{
+	font-size:60px;
+	font-weight:700;
+	color: #5a6acf;
+	margin:20px 0;
+	}
+
+	/*Status pill*/
+	.status-pill{
+	padding:8px 16px;
+	border-radius:20px;
+	width:200px;
+	text-align:center;
+	font-weight:600;
+	}
+
+	.status-pill.warning{
+	background: #e9a72b;
+	color: #2c2c2c;	
+	}
+	
+	/*History Content*/
+
+    /* put the entire row in one line to remove white spaces */
+    .history-filters {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        justify-content: space-between;
+}
+
+    .history-filters h4 {
+        margin-right: auto;
+        font-family: sans-serif;
+    }
+
+
+	.history-section {
+    width: 100%;
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+	/* .history-filters{
+	margin-top:15px;
+    align-items: right;
+    justify-content: space-evenly;
+	} */
+
+	.date-input{
+	padding:8px;
+	margin-right:10px;
+	border:1px solid #ddd;
+	border-radius:5px;
+
+	}
+
+	.download-btn{
+		background: #5a6acf;
+		color:white;
+		border:none;
+		padding:8px 16px;
+		border-radius:6px;
+		cursor:pointer;
+	}
+
+
+	/*Table*/
+	.history-table{
+	width:100%;
+	border-collapse:collapse;
+	}
+	.history-table th,
+	.history-table td{
+		padding:12px;
+		border-bottom:1px solid #eee;
+	}
+	.history-table th{
+		text-align:left;
+			background: #fafafa;
+	}
+
+
+	/* new chart */
+	.chart-card {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-container {
+    /* flex: 1;              fills remaining space */
+    position: relative;
+    width: 100%;
+	height: 300px !important;
+}
+
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
