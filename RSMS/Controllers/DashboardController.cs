@@ -43,8 +43,11 @@ namespace RSMS.Controllers
                     ShelterName = s.ShelterName,
                     Temperature = latest?.Temperature ?? 0,
                     Humidity = latest?.Humidity ?? 0,
-                    SmokeDetected = latest?.SmokeDetected ?? false,
-                    IntrusionDetected = latest?.IntrusionDetected ?? false,
+                    // SmokeDetected = latest?.SmokeDetected ?? false,
+                    ShelterAccess = latest?.ShelterAccess ?? false,
+                    Battery = latest?.Battery ?? 0,
+                    Stabilizer = latest?.Stabilizer ?? 0,
+                    // Settings = latest?.Settings ?? 0,
 
 
                     // added ShelterAccess to the model and set it to false if no reading is available
@@ -71,19 +74,63 @@ namespace RSMS.Controllers
                 .OrderByDescending(r => r.TimeStamp)
                 .Take(100);
 
-            var data = type == "temperature"
-                ? await query.Select(r => new
-                {
-                    r.TimeStamp,
-                    Value = r.Temperature
-                }).ToListAsync()
-                : await query.Select(r => new
-                {
-                    r.TimeStamp,
-                    Value = r.Humidity
-                }).ToListAsync();
+            List<object> data;
+
+            switch (type.ToLower())
+            {
+                case "temperature":
+                    data = await query.Select(r => new
+                    {
+                        r.TimeStamp,
+                        Value = r.Temperature
+                    }).ToListAsync<object>();
+                    break;
+
+                case "humidity":
+                    data = await query.Select(r => new
+                    {
+                        r.TimeStamp,
+                        Value = r.Humidity
+                    }).ToListAsync<object>();
+                    break;
+
+                case "battery":
+                    data = await query.Select(r => new
+                    {
+                        r.TimeStamp,
+                        Value = r.Battery
+                    }).ToListAsync<object>();
+                    break;
+
+                case "shelteraccess":
+                    data = await query.Select(r => new
+                    {
+                        r.TimeStamp,
+                        Value = r.ShelterAccess
+                    }).ToListAsync<object>();
+                    break;
+
+                case "stabilizer":
+                    data = await query.Select(r => new
+                    {
+                        r.TimeStamp,
+                        Value = r.Stabilizer
+                    }).ToListAsync<object>();
+                    break;
+
+                // case "smoke":
+                //     data = await query.Select(r => new
+                //     {
+                //         r.TimeStamp,
+                //         Value = r.SmokeDetected
+                //     }).ToListAsync<object>();
+                //     break;
+
+                default:
+                    return BadRequest("Invalid type");
+            }
 
             return Json(data);
-        }
+                    }
     }
 }

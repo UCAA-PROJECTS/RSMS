@@ -13,22 +13,15 @@ using System.Text.Json;
 
 namespace RSMS.Services
 {
-    public class MqttSubscriber : BackgroundService
+    public class MqttSubscriber(
+        IServiceScopeFactory scopeFactory,
+        IHubContext<ShelterHub> hub,
+        ILogger<MqttSubscriber> logger) : BackgroundService
     {
-        private readonly IServiceScopeFactory _scopeFactory;
-        private readonly IHubContext<ShelterHub> _hub;
-        private readonly ILogger<MqttSubscriber> _logger;
-        private IMqttClient _mqttClient;
-
-        public MqttSubscriber(
-            IServiceScopeFactory scopeFactory,
-            IHubContext<ShelterHub> hub,
-            ILogger<MqttSubscriber> logger)
-        {
-            _scopeFactory = scopeFactory;
-            _hub = hub;
-            _logger = logger;
-        }
+        private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+        private readonly IHubContext<ShelterHub> _hub = hub;
+        private readonly ILogger<MqttSubscriber> _logger = logger;
+        private IMqttClient? _mqttClient;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -116,8 +109,11 @@ namespace RSMS.Services
                         ShelterCode = shelter.ShelterCode,
                         Temperature = dto.Temperature,
                         Humidity = dto.Humidity,
-                        SmokeDetected = dto.SmokeDetected,
-                        IntrusionDetected = dto.IntrusionDetected
+                        Battery = dto.Battery,
+                        Stabilizer = dto.Stabilizer,
+                        ShelterAccess = dto.ShelterAccess,
+                        SmokeDetected = dto.SmokeDetected
+                        // IntrusionDetected = dto.IntrusionDetected
                     };
 
                     context.Readings.Add(reading);
@@ -131,12 +127,22 @@ namespace RSMS.Services
                             shelter.ShelterName,
                             reading.Temperature,
                             reading.Humidity,
-                            reading.SmokeDetected,
-                            reading.IntrusionDetected,
+                            reading.Battery,
+                            reading.ShelterAccess,
+                            reading.Stabilizer,
+                            // reading.SmokeDetected,
+                            // reading.IntrusionDetected,
                             temperatureStatus = statusResult.TemperatureStatus.ToString(),
                             humidityStatus = statusResult.HumidityStatus.ToString(),
-                            smokeStatus = statusResult.smokeStatus.ToString(),
-                            intrudeStatus = statusResult.intrudeStatus.ToString(),
+                            BatteryStatus = statusResult.BatteryStatus.ToString(),
+                            StabilizerStatus = statusResult.StabilizerStatus.ToString(),
+
+                            // changed shelteraccess to shelteraccessstatus
+
+                            ShelterAccessStatus = statusResult.ShelterAccess,
+
+                            smokeStatus = statusResult.smokeStatus,
+                            // intrudeStatus = statusResult.intrudeStatus.ToString(),
                             overallStatus = statusResult.OverallStatus.ToString(),
 
 

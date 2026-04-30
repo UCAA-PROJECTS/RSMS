@@ -18,12 +18,6 @@
 		margin: 0;
 	}
 
-	.menu-item a {
-    display: block;
-    color: inherit;
-    text-decoration: none;
-	}
-
 	.menu-item {
     display: flex;
     align-items: center;
@@ -35,6 +29,13 @@
 	.menu-item i{
 	margin-right:10px;
 	}
+
+	.menu-item a {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+	}
+
 	.menu-item:hover{
 			background: #f1f3ff;
 	}
@@ -94,7 +95,7 @@
     /* align-items: stretch; Keeps cards at their natural height */
 }
 
-	.temp-card {
+	.hum-card {
     flex: 0 0 300px;
     /* height: 100%; Matches the height of the chart card automatically */
 	justify-content: center; /* Centers the temp value vertically */
@@ -124,6 +125,8 @@
     align-items: center;
     margin-bottom: 15px;
 }
+
+
 
 	.card{
 		background:white;
@@ -200,6 +203,8 @@
 }
 
 
+
+
 	/* .chart-card canvas{
 	max-width:100%;
     padding: 0;
@@ -215,8 +220,8 @@
 	margin-left:40px
 	}
 
-	/*Temperature Value*/
-	.temp-value{
+	/*Humidity Value*/
+	.hum-value{
 	font-size:60px;
 	font-weight:700;
 	color: #5a6acf;
@@ -236,7 +241,7 @@
 	background: #e9a72b;
 	color: #2c2c2c;	
 	}
-
+	
 	/*History Content*/
 
     /* put the entire row in one line to remove white spaces */
@@ -284,6 +289,7 @@
 		cursor:pointer;
 	}
 
+
 	/*Table*/
 	.history-table{
 	width:100%;
@@ -301,7 +307,7 @@
 
 
 	/* new chart */
-.chart-card {
+	.chart-card {
     flex-grow: 1;
     display: flex;
     flex-direction: column;

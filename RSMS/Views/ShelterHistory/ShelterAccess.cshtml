@@ -1,0 +1,129 @@
+﻿@using Microsoft.EntityFrameworkCore.Query
+@{
+	ViewBag.Title= "Shelter Access Details";
+}
+<div class="app-container">
+
+	@* include sidebar *@
+	@await Html.PartialAsync("sidebar")
+
+	<!--Main Area-->
+<div class="main-content">
+
+		<!--Header-->
+		<div class="page-header">
+			<h2>
+				<i class="fas fa-door-open"></i>
+				Shelter Access Sensor
+			</h2>
+		</div>
+
+		<!--Cards Row-->
+	<div class="cards-row">
+		<!-- Current Shelter Access Card -->
+		<div class="card shelteraccess-card">
+			<div class="card-title">
+				Current Shelter Access Status
+				<i class="fas fa-door-open"></i>
+			</div>
+			<div class="shelteraccess-value" id="currentShelterAccess">Active</div>
+			<div class="status-pill warning">Status: Warning</div>
+		</div>
+
+		<!-- Chart Card -->
+		@* <div class="card chart-card"> *@
+			@* <div class="chart-header"> *@
+				@* <span>Shelter Access Trend</span> *@
+				@* <div class="filter-controls"> *@
+				<!-- Quick Options -->
+				@* <div class="quick-filters">
+				<button class="filter-btn" data-range="hourly">Hourly Rate</button> *@
+				@* <button class="filter-btn" data-range="7days">Last 7 Days</button> *@
+				@* <button class="filter-btn active" data-range="14days">Last 14 Days</button> *@
+				
+				@* for ui improvement *@
+				
+				@* <input type="text" id="customRange" placeholder="Select range (max 90 days)" />
+				<button class="filter-btn" id="applyRange">Apply</button>
+
+			</div> *@
+			
+			<!-- Custom Calendar -->
+			@* <div class="custom-range"> *@
+				@* <i class="fas fa-calendar-alt"></i> *@
+
+				@* add calendars *@
+				@* <input type="date" class="date-input" placeholder="From Date"/>
+				<input type="date" class="date-input" placeholder="To Date"/> *@
+				@* add a button to display the graph for the selected to and from date *@
+				@* <input type="text" id="customRange" placeholder="Custom Range (1-90 days)"> *@
+			@* </div> *@
+		@* </div> *@
+	</div>
+
+        @* <div class="chart-container">
+            <canvas id="batteryChart"></canvas>
+        </div> *@
+    @* </div> *@
+</div>
+
+		<!--History Content-->
+		<div class="history-section">
+			<div class="history-filters">
+
+			<h4>Historical Shelter Access Details</h4>
+
+				<input type="date" class="date-input" />
+				<input type="date" class="date-input" />
+
+				<button class="download-btn">
+					Download History
+				</button>
+			</div>
+
+			<table class="history-table">
+
+				<thead>
+					<tr>
+						<th>Timestamp</th>
+						<th>Event Type</th>
+						<th>Description</th>
+					</tr>
+				</thead>
+
+				<tbody>
+
+					<tr>
+						<td>2024-03-15 11:00</td>
+						<td>Reading Recorded</td>
+						<td>Shelter accessed by Huud 02852</td>
+					</tr>
+
+					<tr>
+						<td>2024-03-15 10:35</td>
+						<td>Alert Triggered</td>
+						<td>Intrusion detected</td>
+					</tr>
+
+				</tbody>
+
+			</table>
+		</div>
+	</div>
+
+</div>
+
+
+<!-- REQUIRED -->
+@* <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> *@
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<!-- the battery JS FILE -->
+@* <script src="~/js/batteryChart.js" asp-append-version="true"></script> *@
+
+
+
+
+

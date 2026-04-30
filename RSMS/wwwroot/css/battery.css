@@ -94,7 +94,7 @@
     /* align-items: stretch; Keeps cards at their natural height */
 }
 
-	.temp-card {
+	.battery-card {
     flex: 0 0 300px;
     /* height: 100%; Matches the height of the chart card automatically */
 	justify-content: center; /* Centers the temp value vertically */
@@ -216,7 +216,7 @@
 	}
 
 	/*Temperature Value*/
-	.temp-value{
+	.battery-value{
 	font-size:60px;
 	font-weight:700;
 	color: #5a6acf;

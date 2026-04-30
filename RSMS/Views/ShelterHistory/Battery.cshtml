@@ -1,6 +1,6 @@
 ﻿@using Microsoft.EntityFrameworkCore.Query
 @{
-	ViewBag.Title= "Temperature Details";
+	ViewBag.Title= "Battery Details";
 }
 <div class="app-container">
 
@@ -13,27 +13,27 @@
 		<!--Header-->
 		<div class="page-header">
 			<h2>
-				<i class="fas fa-shield-alt"></i>
-				Temperature Sensor
+				<i class="fas fa-battery-three-quarters"></i>
+				Battery Sensor
 			</h2>
 		</div>
 
 		<!--Cards Row-->
 <div class="cards-row">
-    <!-- Current Temperature Card -->
-    <div class="card temp-card">
+    <!-- Current Battery Card -->
+    <div class="card battery-card">
         <div class="card-title">
-            Current Temperature
-            <i class="fas fa-thermometer-half icon-orange"></i>
+            Current Battery Level
+            <i class="fas fa-battery-three-quarters icon-blue"></i>
         </div>
-        <div class="temp-value" id="currentTemp">24.8 °C</div>
+        <div class="battery-value" id="currentBattery">24.8 %</div>
         <div class="status-pill warning">Status: Warning</div>
     </div>
 
     <!-- Chart Card -->
     <div class="card chart-card">
         <div class="chart-header">
-			<span>Temperature Trend</span>
+			<span>Battery Trend</span>
 			<div class="filter-controls">
         	<!-- Quick Options -->
        		<div class="quick-filters">
@@ -62,7 +62,7 @@
 </div>
 
         <div class="chart-container">
-            <canvas id="tempChart"></canvas>
+            <canvas id="batteryChart"></canvas>
         </div>
     </div>
 </div>
@@ -71,7 +71,7 @@
 		<div class="history-section">
 			<div class="history-filters">
 
-			<h4>Historical Temperature Details</h4>
+			<h4>Historical Battery Details</h4>
 
 				<input type="date" class="date-input" />
 				<input type="date" class="date-input" />
@@ -96,13 +96,13 @@
 					<tr>
 						<td>2024-03-15 11:00</td>
 						<td>Reading Recorded</td>
-						<td>Temperature: 28.5°C</td>
+						<td>Battery Level: 24.8%</td>
 					</tr>
 
 					<tr>
 						<td>2024-03-15 10:35</td>
 						<td>Alert Triggered</td>
-						<td>Temperature exceeded 28°C threshold</td>
+						<td>Battery level below 28% threshold</td>
 					</tr>
 
 				</tbody>
@@ -120,8 +120,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-<!-- the temperature JS FILE -->
-<script src="~/js/tempChart.js" asp-append-version="true"></script>
+<!-- the battery JS FILE -->
+<script src="~/js/batteryChart.js" asp-append-version="true"></script>
 
 
 

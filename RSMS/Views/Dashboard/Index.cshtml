@@ -142,7 +142,7 @@
 
                     @* trying the same appearance for shelter access like that of temperature *@
 
-<!-- Shelter Access -->
+                    <!-- Shelter Access -->
                     <a asp-controller="ShelterHistory"
                     asp-action="ShelterAccess"
                     asp-route-code="@shelter.ShelterCode"
@@ -221,6 +221,9 @@
                             --
                         </div>
 
+                        <div class="dot gray-dot"
+                            id="stab-dot-@shelter.ShelterCode"></div>
+
                         @* default dot is green not grey *@
                         
                         @* <div class="dot gray-dot"
@@ -268,7 +271,7 @@
         // -----------------------------
         // Receive updates
         // -----------------------------
-connection.on("ShelterUpdated", data => {
+    connection.on("ShelterUpdated", data => {
 
     console.log("SignalR update:", data);
 
@@ -357,8 +360,17 @@ connection.on("ShelterUpdated", data => {
     // -----------------------------
     updateDot(`temp-dot-${shelter}`, data.temperatureStatus);
     updateDot(`hum-dot-${shelter}`, data.humidityStatus);
-    updateDot(`ink-dot-${shelter}`, data.intrudeStatus);
+
+    @* changed from intrudeStatus to ShelterAccess *@
+    updateDot(`ink-dot-${shelter}`, data.ShelterAccess);
     updateDot(`smk-dot-${shelter}`, data.smokeStatus);
+
+    @* added battery status update dot *@
+    updateDot(`bat-dot-${shelter}`, data.BatteryStatus);
+
+    @* added stabilizer status update dot *@
+    updateDot(`stab-dot-${shelter}`, data.StabilizerStatus);
+
 
     // -----------------------------
     // Overall badge

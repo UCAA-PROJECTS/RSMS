@@ -1,22 +1,58 @@
-<!--Sidebar-->
-	<div class="sidebar">
-		<div class="menu-item active">
-			<i class="fas fa-thermometer-half"></i> Temperature
-		</div>
+<div class="sidebar">
 
-		<div class="menu-item">
-			<i class="fas fa-droplet"></i> Humidity
-		</div>
+    <!-- Temperature -->
+    <div class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Temperature" ? "active" : "")">
+        <a asp-controller="ShelterHistory" 
+           asp-action="Temperature" 
+           asp-route-code="@Context.Request.Query["code"]">
+            <i class="fas fa-thermometer-half"></i> Temperature
+        </a>
+    </div>
 
-		<div class="menu-item">
-			<i class="fas fa-door-open"></i> Shelter Access
-		</div>
+    <!-- Humidity -->
+    <div class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Humidity" ? "active" : "")">
+        <a asp-controller="ShelterHistory" 
+           asp-action="Humidity" 
+           asp-route-code="@Context.Request.Query["code"]">
+            <i class="fas fa-droplet"></i> Humidity
+        </a>
+    </div>
 
-		<div class="menu-item">
-			<i class="fas fa-plug"></i> Stabilizer
-		</div>
+    <!-- Shelter Access -->
+	<div class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "ShelterAccess" ? "active" : "")">
+        <a asp-controller="ShelterHistory" 
+           asp-action="ShelterAccess" 
+           asp-route-code="@Context.Request.Query["code"]">
+            <i class="fas fa-door-open"></i> Shelter Access
+        </a>
+    </div>
+    <!-- Stabilizer -->
+	<div class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Stabilizer" ? "active" : "")">
+        <a asp-controller="ShelterHistory" 
+           asp-action="Stabilizer" 
+           asp-route-code="@Context.Request.Query["code"]">
+            <i class="fas fa-plug"></i> Stabilizer
+        </a>
+    </div>
 
-		<div class="menu-item">
-			<i class="fas fa-battery-full"></i> Battery
-		</div>
-	</div>
+
+    <!-- Battery -->
+
+	<div class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Battery" ? "active" : "")">
+        <a asp-controller="ShelterHistory" 
+           asp-action="Battery" 
+           asp-route-code="@Context.Request.Query["code"]">
+            <i class="fas fa-battery-full"></i> Battery
+        </a>
+    </div>
+
+    <!-- Settings -->
+	<div class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Settings" ? "active" : "")">
+        <a asp-controller="ShelterHistory" 
+           asp-action="Settings" 
+           asp-route-code="@Context.Request.Query["code"]">
+            <i class="fas fa-cogs"></i> Settings
+        </a>
+    </div>
+
+</div>

@@ -25,49 +25,60 @@ namespace RSMS.Controllers
 
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> PostReading([FromBody] SensorInputDTO dto)
-        //{
-        //    var shelter = await _context.Shelters.
-        //        FirstOrDefaultAsync(s => s.ShelterCode == dto.ShelterCode);
+        //[HttpPost] was commented out******///
+        public async Task<IActionResult> PostReading([FromBody] SensorInputDTO dto)
+        {
+           var shelter = await _context.Shelters.
+               FirstOrDefaultAsync(s => s.ShelterCode == dto.ShelterCode);
 
-        //    if (shelter == null)
-        //    {
-        //        return BadRequest("Invalid Shelter Code");
-        //    }
+           if (shelter == null)
+           {
+               return BadRequest("Invalid Shelter Code");
+           }
 
-        //    var reading = new SensorReading
-        //    {
-        //        ShelterCode = shelter.ShelterCode,
-        //        Temperature = dto.Temperature,
-        //        Humidity = dto.Humidity,
-        //        SmokeDetected = dto.SmokeDetected,
-        //        IntrusionDetected = dto.IntrusionDetected,
-        //        WaterLeakDetected = dto.WaterLeakDetected,
+           var reading = new SensorReading
+           {
+               ShelterCode = shelter.ShelterCode,
+               Temperature = dto.Temperature,
+               Humidity = dto.Humidity,
+               SmokeDetected = dto.SmokeDetected,
+               Battery = dto.Battery,
+               Stabilizer = dto.Stabilizer
+            //    IntrusionDetected = dto.IntrusionDetected,
 
-        //    };
-        //    _context.Readings.Add(reading);
-        //    await _context.SaveChangesAsync();
-        //    Console.WriteLine("Sensor reading saved!");
+            //    try adding stabilizer
 
-        //    var status = _shelterStatusService.Evaluate(reading);
+            //    Stabilizer = dto.Stabilizer,
+            
+            //    WaterLeakDetected = dto.WaterLeakDetected,
 
-        //    await _hub.Clients.All.SendAsync("ShelterUpdated", new
-        //    {
-        //        shelter.ShelterCode,
-        //        shelter.ShelterName,
-        //        reading.Temperature,
-        //        reading.Humidity,
-        //        reading.SmokeDetected,
-        //        reading.IntrusionDetected,
-        //        reading.WaterLeakDetected,
-        //        status = status.ToString()
+           };
+           _context.Readings.Add(reading);
+           await _context.SaveChangesAsync();
+           Console.WriteLine("Sensor reading saved!");
+
+           var status = _shelterStatusService.Evaluate(reading);
+
+           await _hub.Clients.All.SendAsync("ShelterUpdated", new
+           {
+               shelter.ShelterCode,
+               shelter.ShelterName,
+               reading.Temperature,
+               reading.Humidity,
+               reading.SmokeDetected,
+                reading.Battery,
+                reading.Stabilizer,
+                reading.ShelterAccess,
+
+            //    reading.IntrusionDetected,
+            //    reading.WaterLeakDetected,
+               status = status.ToString()
 
 
-        //    });
-        //    return Ok();
+           });
+           return Ok();
 
 
-        //}
+        }
     }
 }

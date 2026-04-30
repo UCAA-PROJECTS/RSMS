@@ -7,12 +7,22 @@ namespace RSMS.Models
         public int Id { get; set; }
         [Required]
         [MaxLength(20)]
-        public string ShelterCode { get; set; }
+        public required string ShelterCode { get; set; }
         public Shelter Shelter { get; set; } = null!;
         public double Temperature { get; set; }
         public double Humidity { get; set; }
         public bool SmokeDetected { get; set; }
-        public bool IntrusionDetected { get; set; }
+
+        // added stabilizer
+        public double Stabilizer { get; set; }
+
+        // added battery
+        public double Battery { get; set; }
+
+        
+        // changed intrusiondetected to shelteraccess
+        public bool ShelterAccess { get; set; }
+        // public bool IntrusionDetected { get; set; }
         //public bool WaterLeakDetected { get; set; }
         public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
     }
