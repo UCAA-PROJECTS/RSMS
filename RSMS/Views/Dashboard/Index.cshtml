@@ -21,38 +21,113 @@
 
     <div class="nav-center">
         <div class="nav-item dropdown">
-            <button class="nav-link">Other Sites ▾</button>
-        </div>
+    <a class="nav-link dropdown-toggle" href="#" id="logsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Other Sites
+    </a>
 
-        <div class="nav-item dropdown">
-            <a asp-action="GetCSV" asp-controller="Logs" class="nav-link">
-                Download Logs ▾
+    <ul class="dropdown-menu" aria-labelledby="logsDropdown">
+    <li>
+        <a class="dropdown-item" asp-action="Dashboard" asp-controller="Home" asp-route-site="Gulu">
+            Gulu
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item" asp-action="Dashboard" asp-controller="Home" asp-route-site="Soroti">
+            Soroti
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item" asp-action="Dashboard" asp-controller="Home" asp-route-site="Buwaya">
+            Buwaya
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item" asp-action="Dashboard" asp-controller="Home" asp-route-site="Mbarara">
+            Mbarara
+        </a>
+    </li>
+</ul>
+</div>
+
+<div class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="logsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Download Logs(CSV)
+    </a>
+
+    <ul class="dropdown-menu" aria-labelledby="logsDropdown">
+        <li>
+            <a class="dropdown-item" asp-action="GetCSV" asp-controller="Logs">
+                All Shelters
             </a>
-        </div>
+        </li>
+        <li>
+            <a class="dropdown-item" asp-action="GetCSV" asp-controller="Logs">
+                GP Shelter
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item" asp-action="GetCSV" asp-controller="Logs">
+                Localiser Shelter
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item" asp-action="GetCSV" asp-controller="Logs">
+                DVOR Shelter
+            </a>
+        </li>
+    </ul>
+</div>
 
-        <div class="nav-item dropdown">
-            <button class="nav-link">Configurations ▾</button>
+    <div class="nav-item">
+    <a class="nav-link"
+       asp-action="Configurations"
+       asp-controller="Home"
+       asp-route-site="Configurations">
+        Configurations
+    </a>
+</div>
+
+@* link for system health page *@
+        <div class="nav-item">
+        <a class="nav-link"
+                asp-action="SystemHealth"
+                asp-controller="Home"
+                asp-route-site="SystemHealth">
+                    System Health
+        </a>
         </div>
-    </div>
+</div>
     
     <div class="nav-right">
-        @* < class="nav-item dropdown"> *@
+       
 
-        <button class="nav-link system-health-btn">System Health</button>
-
-        @* <div class="system-health"> *@
-        @* <span>System Health</span> *@
-        @* </div> *@
-
-        <div class="notification">
-            @* <span class="bell">🔔</span> *@
-
-            @* use a better bell *@
-
+        @* <div class="notification">
             <img src="~/images/bell2.jpeg" alt="Notifications" class="bell"/>
             <span class="notif-badge critical">0</span>
             <span class="notif-badge warning">0</span>
+        </div> *@
+
+        @* make the bell clickabe *@
+        <div class="notification">
+            
+            <!-- Bell (all) -->
+            <img src="~/images/bell2.jpeg" class="bell" onclick="loadNotifications('all')" />
+
+            <!-- Red (alarms) -->
+            <span class="notif-badge critical" onclick="loadNotifications('alarm')">
+                @ViewBag.TotalAlarms
+            </span>
+
+            <!-- Yellow (warnings) -->
+            <span class="notif-badge warning" onclick="loadNotifications('warning')">
+                @ViewBag.TotalWarnings
+            </span>
+
         </div>
+
+        <!-- Where results will appear -->
+        <div id="notificationsContainer"></div>
+
     </div>
 
 </div>
@@ -82,13 +157,22 @@
                         @statusText
                     </span>
                 </div>
-                
 
-                <a class="view-feed-btn"
+                @* view live feed btn *@
+                <div>
+                    <a class="view-feed-btn"
+                        asp-action="ViewLiveFeed"
+                        asp-controller="Home"
+                        asp-route-site="ViewLiveFeed">
+                            View Live Feed
+                    </a>
+                    </div>
+
+                @* <a class="view-feed-btn"
                    href="http://rsms:CaaRsms@10.10.40.249:8889/dvorShelter"
                    target="_blank">
                     View Live Feed
-                </a>
+                </a> *@
 
                 <!-- Temperature & Humidity -->
                 <div class="sensor-grid">
@@ -244,8 +328,21 @@
 
 @section Scripts
 {
+
     <script src="/lib/microsoft-signalr/signalr.js"></script>
     <script>
+
+        @* AJAX call for notifications *@
+        function loadNotifications(type) {
+            fetch('/Home/GetNotifications?type=' + type)
+            .then(response => response.text())
+            .then(data => {
+            document.getElementById('notificationsContainer').innerHTML = data;
+        })
+             .catch(error => console.error('Error:', error));
+        }
+
+        
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/shelterHub")
             .withAutomaticReconnect()

@@ -7,8 +7,30 @@ namespace RSMS.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+// function to return partial view containing notifications based on type (alarm, warning, or all)
+public IActionResult GetNotifications(string type)
+{
+    var notifications = new List<string>();
 
-        public HomeController(ILogger<HomeController> logger)
+    if (type == "alarm")
+    {
+        notifications.Add("Alarm: Gulu power failure");
+        notifications.Add("Alarm: Soroti battery low");
+    }
+    else if (type == "warning")
+    {
+        notifications.Add("Warning: Buwaya temperature high");
+    }
+    else
+    {
+        notifications.Add("Alarm: Gulu power failure");
+        notifications.Add("Warning: Buwaya temperature high");
+    }
+
+    return PartialView("_NotificationsPartial", notifications);
+}        
+
+public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
         }
