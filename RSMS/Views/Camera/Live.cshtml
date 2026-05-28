@@ -1,0 +1,56 @@
+﻿@{
+    ViewBag.Title = "Live Feed";
+}
+
+<div class="top-bar">
+
+    <a asp-controller="Dashboard"
+       asp-action="Index"
+       class="back-btn">
+
+        ← Back to Dashboard
+
+    </a>
+
+</div>
+<div class="live-container">
+    <!--Video Section-->
+    <div class="video-panel">
+        <div class="video-header">
+            <div>
+                <h2>@ViewBag.ShelterCode Shelter - Live</h2>
+            </div>
+
+        </div>
+
+        <!--IP Camera Feed-->
+        <div class="video-wrapper">
+            <img src="@ViewBag.CameraUrl" class="live-video" alt="Live Camera Feed"/>
+
+        </div>
+    </div>
+
+    <!--Sensor Panel-->
+    <div class="sensor-panel">
+        <h3>Sensor Readings</h3>
+       
+            <div class="sensor-item">
+            <span><i class="fas fa-thermometer-half"></i> Temperature:</span>
+                <span id="tempValue">-- °C</span>
+            </div>
+            <div class="sensor-item">
+            <span><i class="fas fa-droplet"></i> Humidity:</span>
+                <span id="humidityValue">-- %</span>
+            </div>
+        <div class="sensor-item">
+            <span> <i class="fas fa-fire"></i>Smoke</span>
+            <span id="humidityValue">-- %</span>
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/livefeed.css" />
+}

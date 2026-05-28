@@ -40,19 +40,19 @@
 						<strong class="trend-filter">Temperature Trend</strong>
 						<!-- <span class="trend-filter">Last 7 Days</span> -->
 						<div class="quick-filters">
-							<button class="download-btn" onclick="loadLastHours(1)">Last 1 hour</button>
-							<button class="download-btn" onclick="loadLastHours(24)">Last 24 hours</button>
-							<button class="download-btn" onclick="loadLastDays(7)">Last 7 days</button>
+							<button class="download-btn" id="last1HourBtn">Last 1 hour</button>
+							<button class="download-btn" id="last24HoursBtn">Last 24 hours</button>
+							<button class="download-btn" id="last7DaysBtn">Last 7 days</button>
 						</div>
 
 						<div class="quick-filters">
 							<input type="date" id="startDate" class="date-input" />
 							<input type="date" id="endDate" class="date-input" />
 
-							<button class="download-btn" id="showHistoryBtn">
+							<button type="button" class="download-btn" id="showHistoryBtn">
 								Show History
 							</button>
-							<button class="download-btn" onclick="returntoLive()">Return to Live</button>
+							<button type="button" class="download-btn" onclick="returntoLive()">Return to Live</button>
 						</div>
 					</div>
 				</div>
@@ -102,303 +102,15 @@
 </div>
 
 @section Scripts{
+    <script>
+        window.shelterCode ="@ViewBag.ShelterCode";
+	</script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script>
-	const shelterCode = "@ViewBag.ShelterCode";
-	const ctx = document.getElementById("tempChart");
-
-	window.tempChart = new Chart(ctx, {
-
-		type: "line",
-
-		data: {
-
-			labels: [],
-
-			datasets: [{
-
-				label:"",
-
-				data: [],
-
-				borderColor: "#5a6acf",
-
-				tension: 0.4,
-
-				fill: false
-			}]
-		},
-
-		options: {
-
-	responsive: true,
-
-	maintainAspectRatio: false,
-
-	plugins: {
-
-		legend: {
-
-			display: false,
-		},
-
-		title: {
-
-			display: false,
-
-			//text: "Temperature History"
-		}
-	},
-
-	scales: {
-
-		x: {
-
-			title: {
-
-				display: true,
-
-				text: ""
-			},
-
-			ticks: {
-				//autoSkip: true,
-				maxRotation: 45,
-				//maxTicksLimit: 10,
-				minRotation: 45
-			}
-		},
-
-		y: {
-
-			beginAtZero: false,
-
-			title: {
-
-				display: true,
-
-				text: "Temperature (°C)"
-			}
-		}
-	}
-}
-	});
-		/* =========================================
-		FLAG
-	=========================================*/
-	let historicalMode = false
-
-	async function loadChartData(startDate = "", endDate = "")
-	{
-		//If user selected dates, switch to historical mode
-			historicalMode =
-			startDate !== "" || endDate !== "";
-		try
-		{
-			const response = await fetch(
-				`/ShelterHistory/GetTemperatureHistory`+
-				`?shelterCode=${shelterCode}`+
-				`&startDate=${startDate}`+
-				`&endDate=${endDate}`);
-
-				const data = await response.json();
-               
-				//Clear existing Chart data
-				window.tempChart.data.labels = [];
-				window.tempChart.data.datasets[0].data = [];
-
-				//Load new data
-
-				data.forEach(item => {
-				window.tempChart.data.labels.push(item.time);
-				window.tempChart.data.datasets[0].data.push(item.temperature);
-				});
-				window.tempChart.update();
-		}
-			 catch (err) {
-
-			console.error(
-				"Chart loading error:",
-				err
-			);
-		}
-	}
-
-	function formatDate(date){
-	return date.toISOString().split('T')[0];
-	}
-
-	async function loadLastHours(hours){
-		historicalMode = true;
-		const endDate = new Date();
-		const startDate = new Date();
-		startDate.setHours(endDate.getHours() - hours);
-            await loadChartData(startDate.toISOString(), endDate.toISOString());
-	}
-
-	async function loadLastDays(days){
-		historicalMode = true;
-		const endDate = new Date();
-		const startDate = new Date();
-		startDate.setDate(endDate.getDate() - days);
-        await loadChartData(startDate.toISOString(), endDate.toISOString());
-	}
-
-	document.getElementById("showHistoryBtn").addEventListener("click", () => {
-
-		const startDate =
-			document.getElementById("startDate").value;
-
-		const endDate =
-			document.getElementById("endDate").value;
-
-		loadChartData(startDate, endDate);
-	});
-
-		/* =====================================================
-		LOAD INITIAL HISTORY
-	=====================================================*/
-
-		loadChartData();
-
-		/* =====================================================
-		RELOAD CHART WHEN DATES CHANGE
-	=====================================================*/
-	const startDateInput =
-	document.getElementById("startDate");
-
-	const endDateInput =
-		document.getElementById("endDate");
-
-	function applyDateFilter() {
-
-		const startDate = startDateInput.value;
-
-		const endDate = endDateInput.value;
-
-		loadChartData(startDate, endDate);
-		
-	}
-
-	startDateInput.addEventListener(
-		"change",
-		applyDateFilter
-	);
-
-	endDateInput.addEventListener(
-		"change",
-		applyDateFilter
-	);
-
-	function returntoLive()
-	{
-            historicalMode = false;
-            window.tempChart.data.labels = [];
-            window.tempChart.data.datasets[0].data = [];
-	}
-
-</script>
-
+	<script src="/js/tempChart.js"></script>
 
 	<script src="/lib/microsoft-signalr/signalr.js"></script>
-	<script>
-		
-
-		const connection = new signalR.HubConnectionBuilder()
-			.withUrl("/shelterHub")
-			.withAutomaticReconnect()
-			.build();
-
-		async function joinGroup() {
-			await connection.invoke("JoinShelterGroup", shelterCode);
-			console.log("Joined shelter group:", shelterCode);
-		}
-
-		connection.onreconnected(async () => {
-			await joinGroup();
-		});
-
-		connection.on("ShelterUpdated", data => {
-
-			if (data.shelterCode !== shelterCode) return;
-
-			console.log("Live update received:", data);
-
-			/* -------------------------
-				Update Temperature Value
-			--------------------------*/
-
-			const tempElement = document.getElementById("currentTemp");
-
-			if (tempElement) {
-				tempElement.innerText = `${data.temperature} °C`;
-			}
-
-			/* -------------------------
-				Update Status Badge
-			--------------------------*/
-
-			const statusElement = document.getElementById("tempStatus");
-
-			if (statusElement) {
-
-				const status = (data.temperatureStatus || "unknown").toLowerCase();
-
-				statusElement.innerText = `Status: ${data.temperatureStatus}`;
-
-				statusElement.classList.remove(
-					"status-ok",
-					"status-warning",
-					"status-alert",
-					"status-unknown"
-				);
-
-				if (status === "alert")
-					statusElement.classList.add("status-alert");
-
-				else if (status === "warning")
-					statusElement.classList.add("status-warning");
-
-				else if (status === "ok")
-					statusElement.classList.add("status-ok");
-
-				else
-					statusElement.classList.add("status-unknown");
-			}
-
-			/* -------------------------
-				Update Chart
-			--------------------------*/
-			
-			if (window.tempChart && !historicalMode) {
-
-				const now = new Date().toLocaleTimeString([], {hour: '2-digit',minute: '2-digit'});
-
-
-				window.tempChart.data.labels.push(now);
-				window.tempChart.data.datasets[0].data.push(data.temperature);
-
-				//keep latest 20 points only
-				if (window.tempChart.data.labels.length > 20) {
-					window.tempChart.data.labels.shift();
-					window.tempChart.data.datasets[0].data.shift();
-				}
-
-				window.tempChart.update();
-			}
-
-		});
-			
-
-		connection.start()
-			.then(async () => {
-				console.log("SignalR connected");
-				await joinGroup();
-			})
-			.catch(err => console.error("SignalR connection error:", err));
-
-	</script>
+    <script src="/js/tempSignalR.js"></script>
 
 }
