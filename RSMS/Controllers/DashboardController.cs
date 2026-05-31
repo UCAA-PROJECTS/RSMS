@@ -22,16 +22,15 @@ namespace RSMS.Controllers
         public async Task<IActionResult> Index()
         {
             // Load shelters with latest reading only (optimized query)
-            var shelters = await _context.Shelters
-                .Select(s => new
-                {
-                    s.ShelterCode,
-                    s.ShelterName,
-                    LatestReading = s.SensorReadings
-                        .OrderByDescending(r => r.TimeStamp)
-                        .FirstOrDefault()
-                })
-                .ToListAsync();
+            var shelters = await _context.Shelters.
+            Select(s => new {
+                                s.ShelterCode,
+                                s.ShelterName,
+                                LatestReading = s.SensorReadings
+                                    .OrderByDescending(r => r.TimeStamp)
+                                    .FirstOrDefault()
+                            })
+            .ToListAsync();
 
             var model = shelters.Select(s =>
             {
@@ -51,9 +50,7 @@ namespace RSMS.Controllers
                     // ShelterAccess = latest?.ShelterAccess ?? false,
 
                     //WaterLeakDetected = latest?.WaterLeakDetected ?? false,
-                    Status = latest == null
-                        ? ShelterStatus.Ok
-                        : _statusService.Evaluate(latest).OverallStatus
+                    Status = latest == null ? ShelterStatus.Ok : _statusService.Evaluate(latest).OverallStatus
                 };
             }).ToList();
 
