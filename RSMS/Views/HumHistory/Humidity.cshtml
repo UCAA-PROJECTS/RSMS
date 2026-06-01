@@ -1,8 +1,25 @@
 ﻿@{
-	ViewBag.Title = "Temperature Sensor";
+	ViewBag.Title = "Humidity Sensor";
+}
+
+@section Scripts {
+	<link rel="stylesheet" asp-append-version="true" href="~/css/TemperaturePage.css" />
+    <link rel="stylesheet" href="~/css/humChart.css" />
+	<script>
+		window.shelterCode ="@ViewBag.ShelterCode";
+	</script>
+
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+	<script src="/js/humChart.js"></script>
+
+	<script src="/lib/microsoft-signalr/signalr.js"></script>
+	<script src="/js/humSignalR.js"></script>
+	<script src="/js/humSummary.js"></script>
+
 }
 <div class="app-container">
-    <partial name="_SideMenu" />
+	<partial name="_SideMenu" />
 	<!--Main Area-->
 	<div class="main-content">
 
@@ -10,7 +27,7 @@
 		<div class="page-header">
 			<h2>
 				<i class="fas fa-shield-alt"></i>
-				Temperature Sensor
+				Humidity Sensor
 			</h2>
 		</div>
 
@@ -19,14 +36,14 @@
 			<!--Current Temperature-->
 			<div class="card temp-card">
 				<div class="card-title">
-					Current Temperature
-					<i class="fas fa-thermometer-half icon-orange"></i>
+					Current Humidity
+					<i class="fas fa-droplet"></i>
 				</div>
-				<div class="temp-value" id="currentTemp">
-					-- °C
+				<div class="temp-value" id="currentHum">
+					-- %
 				</div>
 
-				<div class="status-pill status-unknown" id="tempStatus">
+				<div class="status-pill status-unknown" id="humStatus">
 					Status: Unknown
 				</div>
 
@@ -34,10 +51,10 @@
 
 			<!-- Chart -->
 			<div class="card chart-card">
-				
+
 				<div class="chart-header">
 					<div class="parent">
-						<strong class="trend-filter">Temperature Trend</strong>
+						<strong class="trend-filter">Humidity Trend</strong>
 						<!-- <span class="trend-filter">Last 7 Days</span> -->
 						<div class="quick-filters">
 							<button class="download-btn" id="last1HourBtn">Last 1 hour</button>
@@ -56,9 +73,9 @@
 						</div>
 					</div>
 				</div>
-				
 
-				<canvas id="tempChart"></canvas>
+
+				<canvas id="humChart"></canvas>
 
 			</div>
 		</div>
@@ -68,11 +85,11 @@
 
 			<div class="summary-card">
 				<div class="summary-icon">
-					<i class="fas fa-temperature-half"></i>
+					<i class="fas fa-droplet"></i>
 				</div>
 				<div class="summary-info">
-					<span class="summary-title">Avg Temperature</span>
-					<h2 id="avgTemp">-- °C</h2>
+					<span class="summary-title">Avg Humidity</span>
+					<h2 id="avgHum">-- %</h2>
 				</div>
 
 			</div>
@@ -82,8 +99,8 @@
 					<i class="fas fa-arrow-up"></i>
 				</div>
 				<div class="summary-info">
-					<span class="summary-title">Max Temperature</span>
-					<h2 id="maxTemp">-- °C</h2>
+					<span class="summary-title">Max Humidity</span>
+					<h2 id="maxHum">-- %</h2>
 				</div>
 
 			</div>
@@ -93,8 +110,8 @@
 					<i class="fas fa-arrow-down"></i>
 				</div>
 				<div class="summary-info">
-					<span class="summary-title">Min Temperature</span>
-					<h2 id="minTemp">-- °C</h2>
+					<span class="summary-title">Min Humidity</span>
+					<h2 id="minHum">-- %</h2>
 
 				</div>
 
@@ -113,24 +130,9 @@
 			</div>
 
 		</div>
-		
+
 	</div>
 
 </div>
 
-@section Scripts{
-	<link rel="stylesheet" asp-append-version="true" href="~/css/TemperaturePage.css" />
-	<link rel="stylesheet" href="~/css/tempchart.css" />
-    <script>
-        window.shelterCode ="@ViewBag.ShelterCode";
-	</script>
 
-	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-	<script src="/js/tempChart.js"></script>
-
-	<script src="/lib/microsoft-signalr/signalr.js"></script>
-    <script src="/js/tempSignalR.js"></script>
-	<script src="/js/tempSummary.js"></script>
-
-}

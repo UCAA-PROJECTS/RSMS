@@ -112,7 +112,7 @@
                     </a>
 
                     @* trying the same appearance for humidity like that of temperature *@
-                    <a asp-controller="ShelterHistory"
+                    <a asp-controller="HumHistory"
                        asp-action="Humidity"
                        asp-route-code="@shelter.ShelterCode"
                        class="sensor-box sensor-button">
@@ -228,6 +228,7 @@
 
 @section Scripts
 {
+    <link rel="stylesheet" href="~/css/dashboard.css" />
     <script src="/lib/microsoft-signalr/signalr.js"></script>
     <script>
         const connection = new signalR.HubConnectionBuilder()

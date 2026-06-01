@@ -36,14 +36,17 @@
        
             <div class="sensor-item">
             <span><i class="fas fa-thermometer-half"></i> Temperature:</span>
-            <span id="currentTemp">-- °C</span>
+            <span class="value" id="currentTemp">-- °C</span> 
+            <span id="tempStatus" class="status-pill status-unknown"></span>
             </div>
+
             <div class="sensor-item">
             <span><i class="fas fa-droplet"></i> Humidity:</span>
-                <span id="humidityValue">-- %</span>
+            <span class="value" id="currentHum">-- %</span>
+            <span id="humStatus" class="status-pill status-unknown"></span>
             </div>
         <div class="sensor-item">
-            <span> <i class="fas fa-fire"></i>Smoke</span>
+            <span> <i class="fas fa-fire"></i> Smoke</span>
             <span id="humidityValue">-- %</span>
         </div>
 
@@ -58,4 +61,5 @@
     </script>
     <script src="/lib/microsoft-signalr/signalr.js"></script>
     <script src="/js/tempSignalR.js"></script>
+    <script src="/js/humSignalR.js"></script>
 }

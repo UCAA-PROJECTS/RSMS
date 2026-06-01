@@ -74,3 +74,34 @@
         transform: translateY(-2px);
         color: white;
     }
+
+.status-pill {
+    padding: 3px 10px;
+    border-radius: 20px;
+    width: 150px;
+    text-align: center;
+    font-weight: 600;
+}
+/*Status Colors*/
+.status-alert {
+    background: #d9534f;
+}
+
+.status-warning {
+    background: #f0ad4e;
+    
+}
+
+.status-ok {
+    background: #28a745;
+}
+
+.status-unknown {
+    background: gray;
+}
+
+.value {
+    font-size: 18px;
+    color: white;
+    font-weight: 600;
+}

@@ -1,12 +1,19 @@
 ﻿<!--Sidebar-->
+@{
+	string? currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+	string IsActive(string action)
+	{
+		return currentAction == action ? "active" : "";
+	}
+}
 <div class="sidebar">
-	<div class="menu-item active">
-		<i class="fas fa-thermometer-half"></i> Temperature
-	</div>
-
-	<div class="menu-item">
+	<a class="menu-item @IsActive("Temperature")" asp-controller="TempHistory" asp-action="Temperature"
+		asp-route-code="@ViewBag.ShelterCode"><i class="fas fa-thermometer-half"></i> Temperature 
+	</a>
+	
+	<a class="menu-item @IsActive("Humidity")" asp-controller="HumHistory" asp-action="Humidity" asp-route-code="@ViewBag.ShelterCode">
 		<i class="fas fa-droplet"></i> Humidity
-	</div>
+	</a>
 
 	<div class="menu-item">
 		<i class="fas fa-door-open"></i> Shelter Access

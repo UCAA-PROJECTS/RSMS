@@ -1,0 +1,10 @@
+﻿.chart-card {
+    height: 350px;
+}
+
+#humChart {
+    width: 100% !important;
+    height: 100% !important;
+    position: relative;
+    top: -55px;
+}

@@ -34,33 +34,42 @@ document.addEventListener("DOMContentLoaded", () => {
 		Update Status Badge
 	--------------------------*/
 
-	const statusElement = document.getElementById("tempStatus");
-
-	if (statusElement) {
+			const statusElement = document.getElementById("tempStatus");
+			
+			if (statusElement || liveElement) {
 
 				const status = (data.temperatureStatus || "unknown").toLowerCase();
 
-	statusElement.innerText = `Status: ${data.temperatureStatus}`;
+				statusElement.innerText = `Status: ${data.temperatureStatus}`;
+			
 
-	statusElement.classList.remove(
-	"status-ok",
-	"status-warning",
-	"status-alert",
-	"status-unknown"
-	);
+				statusElement.classList.remove(
+				"status-ok",
+				"status-warning",
+				"status-alert",
+				"status-unknown"
+				);
 
-	if (status === "alert")
-	statusElement.classList.add("status-alert");
+				if (status === "alert") {
+					statusElement.classList.add("status-alert");
+					
+				}
 
-	else if (status === "warning")
-	statusElement.classList.add("status-warning");
+				else if (status === "warning") {
+					statusElement.classList.add("status-warning");
+					
+				}
 
-	else if (status === "ok")
-	statusElement.classList.add("status-ok");
+				else if (status === "ok") {
+					statusElement.classList.add("status-ok");
+					
+				}
 
-	else
-	statusElement.classList.add("status-unknown");
-			}
+				else {
+					statusElement.classList.add("status-unknown");
+                    
+				}
+						}
 
 	/* -------------------------
 		Update Chart
