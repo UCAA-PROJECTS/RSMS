@@ -29,7 +29,7 @@ namespace RSMS.Services
         private MqttClientOptions _mqttClientConnectOptions;
         private MqttTopicFilter _mqttClientSubscriptionOptions;
         private MqttClientDisconnectOptions _mqttClientDisconnectOptions;
-        private string MqttServerAddress => "localhost"; //this will be changed to the actual mqtt server 
+        private string MqttServerAddress => "172.29.100.10"; //this will be changed to the actual mqtt server 
         private int MqttServerPort => 1883;
 
         public MqttSubscriber(IServiceScopeFactory scopeFactory, IHubContext<ShelterHub> hub, ILogger<MqttSubscriber> logger)
@@ -46,14 +46,14 @@ namespace RSMS.Services
             _mqttClientConnectOptions = new MqttClientOptionsBuilder()
                 .WithClientId("RSMS-Dashboard")
                 .WithTcpServer(MqttServerAddress, MqttServerPort)
-                .WithCleanSession()
+                .WithCleanSession(true)
                 .WithKeepAlivePeriod(TimeSpan.FromSeconds(60))
                 .Build();
 
             //create mqtt client subscription options.
             _mqttClientSubscriptionOptions = new MqttTopicFilterBuilder()
                     .WithTopic("shelters/+")
-                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                    //.WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
                     .Build();
 
             //create mqtt client disconnect options.
@@ -198,7 +198,14 @@ namespace RSMS.Services
             _logger.LogWarning("Stopping MQTT client connection.");
             if (_mqttClient != null)
             {
-                await _mqttClient.DisconnectAsync(_mqttClientDisconnectOptions,cancellationToken);
+                try
+                {
+                    await _mqttClient.DisconnectAsync(_mqttClientDisconnectOptions, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error disconnecting MQTT client.");
+                }
             }
             await base.StopAsync(cancellationToken);
         }

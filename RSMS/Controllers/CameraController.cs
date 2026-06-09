@@ -11,9 +11,9 @@ namespace RSMS.Controllers
             //IP Camera Urls
             var cameraFeeds = new Dictionary<string, string>
             {
-                {"ILS002","http://192.168.11.79:8080/video" },
-                {"DVOR003", "http://rsms:CaaRsms@10.10.40.249:8889/dvorShelter" },
-                {"GP001", "" }
+                {"ILS002","http://172.29.100.10:8889/loc_camera" },
+                {"DVOR003", "http://172.29.100.10:8889/dvor_camera" },
+                {"GP001", "http://172.29.100.10:8889/gp_camera" }
             };
 
             if (!cameraFeeds.ContainsKey(shelterCode)) 
