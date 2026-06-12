@@ -12,8 +12,8 @@ using RSMS.Data;
 namespace RSMS.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260523044912_AddPostgresDb")]
-    partial class AddPostgresDb
+    [Migration("20260611065335_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

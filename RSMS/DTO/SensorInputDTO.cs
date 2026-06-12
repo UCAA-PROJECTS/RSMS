@@ -4,6 +4,7 @@ namespace RSMS.DTO
 {
     public class SensorInputDTO
     {
+        public DateTimeOffset RecordedTime { get; set; }
         public string ShelterCode { get; set; }
         public double Temperature { get; set; }
         public double Humidity { get; set; }

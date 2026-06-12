@@ -29,7 +29,6 @@ namespace RSMS.Controllers
 
             ViewBag.ShelterCode = code;
             return View(data);
-
         }
 
         [HttpGet]
@@ -107,9 +106,9 @@ namespace RSMS.Controllers
 
             var summary = new HumiditySummaryDTO
             {
-                AvgHumidity = Math.Round(await query.AverageAsync(r => r.Temperature), 1),
-                MinHumidity = await query.MinAsync(r => r.Temperature),
-                MaxHumidity = await query.MaxAsync(r => r.Temperature),
+                AvgHumidity = Math.Round(await query.AverageAsync(r => r.Humidity), 1),
+                MinHumidity = await query.MinAsync(r => r.Humidity),
+                MaxHumidity = await query.MaxAsync(r => r.Humidity),
                 SensorStatus = Status
             };
             return Json(summary);

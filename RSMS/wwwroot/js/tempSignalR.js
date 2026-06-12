@@ -7,98 +7,79 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	async function joinGroup() {
 		await connection.invoke("JoinShelterGroup", shelterCode);
-	console.log("Joined shelter group:", shelterCode);
+		console.log("Joined shelter group:", shelterCode);
+	}
+
+	connection.onreconnected(async () => {
+		await joinGroup();
+	});
+
+	connection.on("ShelterUpdated", data => {
+		if (data.shelterCode !== shelterCode) return;
+		console.log("Live update received:", data);
+
+		/* -------------------------
+			Update Temperature Value
+		--------------------------*/
+		const tempElement = document.getElementById("currentTemp");
+		if (tempElement) {
+			tempElement.innerText = `${data.temperature} °C`;
 		}
 
-		connection.onreconnected(async () => {
-		await joinGroup();
-		});
+		/* -------------------------
+			Update Status Badge
+		--------------------------*/
+		const statusElement = document.getElementById("tempStatus");
+			
+		if (statusElement || liveElement) {
+			const status = (data.temperatureStatus || "unknown").toLowerCase();
+			statusElement.innerText = `Status: ${data.temperatureStatus}`;
+			
+			statusElement.classList.remove(
+			"status-ok",
+			"status-warning",
+			"status-alert",
+			"status-unknown"
+			);
 
-		connection.on("ShelterUpdated", data => {
+			if (status === "alert") {
+				statusElement.classList.add("status-alert");	
+			}
+			else if (status === "warning") {
+				statusElement.classList.add("status-warning");	
+			}
+			else if (status === "ok") {
+				statusElement.classList.add("status-ok");	
+			}
+			else {
+				statusElement.classList.add("status-unknown");     
+			}
+		}
 
-			if (data.shelterCode !== shelterCode) return;
+		/* -------------------------
+			Update Chart
+		--------------------------*/
+		if (window.tempChart && !window.historicalMode) {
+			const now = new Date().toLocaleTimeString([], {hour: '2-digit',minute: '2-digit'});
 
-	console.log("Live update received:", data);
+			window.tempChart.data.labels.push(now);
+			window.tempChart.data.datasets[0].data.push(data.temperature);
 
-	/* -------------------------
-		Update Temperature Value
-	--------------------------*/
-
-	const tempElement = document.getElementById("currentTemp");
-
-	if (tempElement) {
-		tempElement.innerText = `${data.temperature} °C`;
+			//keep latest 20 points only
+			if (window.tempChart.data.labels.length > 20) {
+				window.tempChart.data.labels.shift();
+				window.tempChart.data.datasets[0].data.shift();
 			}
 
-	/* -------------------------
-		Update Status Badge
-	--------------------------*/
+			window.tempChart.update();
+		}
 
-			const statusElement = document.getElementById("tempStatus");
-			
-			if (statusElement || liveElement) {
-
-				const status = (data.temperatureStatus || "unknown").toLowerCase();
-
-				statusElement.innerText = `Status: ${data.temperatureStatus}`;
-			
-
-				statusElement.classList.remove(
-				"status-ok",
-				"status-warning",
-				"status-alert",
-				"status-unknown"
-				);
-
-				if (status === "alert") {
-					statusElement.classList.add("status-alert");
-					
-				}
-
-				else if (status === "warning") {
-					statusElement.classList.add("status-warning");
-					
-				}
-
-				else if (status === "ok") {
-					statusElement.classList.add("status-ok");
-					
-				}
-
-				else {
-					statusElement.classList.add("status-unknown");
-                    
-				}
-						}
-
-	/* -------------------------
-		Update Chart
-	--------------------------*/
-
-	if (window.tempChart && !window.historicalMode) {
-
-				const now = new Date().toLocaleTimeString([], {hour: '2-digit',minute: '2-digit'});
-
-
-	window.tempChart.data.labels.push(now);
-	window.tempChart.data.datasets[0].data.push(data.temperature);
-
-				//keep latest 20 points only
-				if (window.tempChart.data.labels.length > 20) {
-		window.tempChart.data.labels.shift();
-	window.tempChart.data.datasets[0].data.shift();
-				}
-
-	window.tempChart.update();
-			}
-
-		});
+	});
 
 
 	connection.start()
-			.then(async () => {
-		console.log("SignalR connected");
-	await joinGroup();
-			})
-			.catch(err => console.error("SignalR connection error:", err));
+		.then(async () => {
+			console.log("SignalR connected");
+			await joinGroup();
+		}).catch(err => console.error("SignalR connection error:", err));
 });

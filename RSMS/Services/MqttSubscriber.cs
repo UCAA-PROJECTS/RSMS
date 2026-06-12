@@ -29,7 +29,7 @@ namespace RSMS.Services
         private MqttClientOptions _mqttClientConnectOptions;
         private MqttTopicFilter _mqttClientSubscriptionOptions;
         private MqttClientDisconnectOptions _mqttClientDisconnectOptions;
-        private string MqttServerAddress => "172.29.100.10"; //this will be changed to the actual mqtt server 
+        private string MqttServerAddress => "localhost"; //"172.29.100.10"; //this will be changed to the actual mqtt server 
         private int MqttServerPort => 1883;
 
         public MqttSubscriber(IServiceScopeFactory scopeFactory, IHubContext<ShelterHub> hub, ILogger<MqttSubscriber> logger)
@@ -158,7 +158,8 @@ namespace RSMS.Services
                         Temperature = dto.Temperature,
                         Humidity = dto.Humidity,
                         SmokeDetected = dto.SmokeDetected,
-                        IntrusionDetected = dto.IntrusionDetected
+                        IntrusionDetected = dto.IntrusionDetected,
+                        TimeStamp = dto.RecordedTime.UtcDateTime
                     };
 
                     //Add a new reading to the Database
@@ -169,6 +170,7 @@ namespace RSMS.Services
                         .Group(shelter.ShelterCode)
                         .SendAsync("ShelterUpdated", new
                         {
+                            reading.TimeStamp,
                             shelter.ShelterCode,
                             shelter.ShelterName,
                             reading.Temperature,

@@ -32,42 +32,34 @@ namespace RSMS.Controllers
 
         }
 
+        //Make the limits mandatory to limit on the amount of data loaded into memory at a time. This is because from the associated
+        //.js files, the method loadChartData(), is always passed with both start and end date.
         [HttpGet]
-        public async Task<IActionResult> GetTemperatureHistory(string shelterCode, DateTime? startDate, DateTime ?endDate) 
+        public async Task<IActionResult> GetTemperatureHistory(string shelterCode, DateTime startDate, DateTime endDate) 
         {
-            var data = _context.Readings
-                .Where(r => r.ShelterCode == shelterCode);
-                
-            //Applying the date filtering
-            if(startDate.HasValue)
-            {
-                data = data.Where(r => r.TimeStamp >= startDate.Value);
-            }
-            if (endDate.HasValue) 
-            {
-                data = data.Where(r => r.TimeStamp <= endDate.Value);
-            }
+            var data =await _context.Readings
+                               .Where(reading => reading.ShelterCode == shelterCode && reading.TimeStamp >= startDate && reading.TimeStamp <= endDate)
+                               .OrderByDescending(q => q.TimeStamp)
+                               .Select(q => new TemperatureChartDTO
+                               {
+                                    Time = q.TimeStamp.ToString("yyyy-MM-dd HH:mm"),
+                                    Temperature = q.Temperature
+                               })
+                               .ToListAsync(); 
 
-            var query = await data
-                .OrderByDescending(q => q.TimeStamp)
-                .Select(q => new TemperatureChartDTO
-                {
-                    Time = q.TimeStamp.ToString("yyyy-MM-dd HH:mm"),
-                    Temperature = q.Temperature
-                })
-                .ToListAsync();
-            return Json(query);
+            return Json(data);
         }
 
         [HttpGet]
         public async Task<IActionResult> GetTemperatureSummary(string shelterCode)
         {
-            string Status;
+            string status;
+            //THIS IS 4 HOURS AGO, WHY NAME VARIABLE IS 6 HOURS?
             var sixHoursAgo = DateTime.UtcNow.AddHours(-1);
 
-            var query = _context.Readings.Where(x => x.ShelterCode == shelterCode &&
-            x.TimeStamp >= sixHoursAgo);
-
+            var query = _context.Readings.Where(reading => reading.ShelterCode == shelterCode && reading.TimeStamp >= sixHoursAgo);
+                                                
+            
             var latestReading = await query.OrderByDescending(r => r.TimeStamp).FirstOrDefaultAsync();
             if (latestReading == null)
             {
@@ -81,25 +73,29 @@ namespace RSMS.Controllers
                 });
             }
 
-            //Time difference since last reading
+            //Time difference since last reading.
+            //WHY ARE WE USING LAST READING TO CHECK SENSOR AVAILABILITY. IF SENSOR WENT OFF IN THE LAST < 5 MINUTES, WE SHALL CONTINUE TO
+            //LOG SENSOR ONLINE, HOWEVER THERE WILL BE NO UPDATE ON THE LATEST SENSOR GRAPH.
             var minutesSinceLastReading = (DateTime.UtcNow - latestReading.TimeStamp).TotalMinutes;
             
             if (minutesSinceLastReading < 5)
             {
-                Status = "Online";
+                status = "Online";
             }
 
             else if (minutesSinceLastReading < 15)
             {
-                Status = "Warning";
+                status = "Warning";
             }
 
             else
             {
-                Status = "Offline";
+                status = "Offline";
             }
+
             var hasData = await query.AnyAsync();
 
+            //A SENSOR CAN HAVE DATA AND BE OFFLINE.RIGHT??
             if (!hasData)
             {
                 return Json(new TemperatureSummaryDTO { SensorStatus = "Offline" });
@@ -110,7 +106,7 @@ namespace RSMS.Controllers
                 AvgTemperature = Math.Round(await query.AverageAsync(r => r.Temperature), 1),
                 MinTemperature = await query.MinAsync(r => r.Temperature),
                 MaxTemperature = await query.MaxAsync(r => r.Temperature),
-                SensorStatus = Status
+                SensorStatus = status
             };
             return Json(summary);
 

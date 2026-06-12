@@ -1,8 +1,11 @@
 ﻿
+using NuGet.Packaging.Signing;
+
 namespace RSMS.Models
 {
     public class DashboardModelView
     {
+        public DateTime TimeRecorded { get; set; }
         public string ShelterCode { get; set; } = null!;
         public string ShelterName { get; set; } = null!;
         public double Temperature { get; set; }

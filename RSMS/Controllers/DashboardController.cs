@@ -44,7 +44,7 @@ namespace RSMS.Controllers
                     Humidity = latest?.Humidity ?? 0,
                     SmokeDetected = latest?.SmokeDetected ?? false,
                     IntrusionDetected = latest?.IntrusionDetected ?? false,
-
+                    TimeRecorded = latest?.TimeStamp ?? new DateTime(0000,00,00,00,00,00),
 
                     // added ShelterAccess to the model and set it to false if no reading is available
                     // ShelterAccess = latest?.ShelterAccess ?? false,
@@ -68,7 +68,7 @@ namespace RSMS.Controllers
                 .OrderByDescending(r => r.TimeStamp)
                 .Take(100);
 
-            var data = type == "temperature"
+            var data = type == "temperature" 
                 ? await query.Select(r => new
                 {
                     r.TimeStamp,

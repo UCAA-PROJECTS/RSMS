@@ -8,7 +8,7 @@ namespace RSMS.Services
         {
             var result = new ShelterStatusResult
             {
-
+                RecordedTime = read.TimeStamp,
                 TemperatureStatus = EvaluateTemperature(read.Temperature),
                 HumidityStatus = EvaluateHumidity(read.Humidity),
                 smokeStatus = read.SmokeDetected? ShelterStatus.Alert : ShelterStatus.Ok,

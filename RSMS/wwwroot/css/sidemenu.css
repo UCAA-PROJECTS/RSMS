@@ -1,4 +1,7 @@
-﻿.sidebar ul {
+﻿.sidebar{
+    background-color: white;
+}
+.sidebar ul {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -14,19 +17,19 @@
     text-decoration: none;
 }
 
-    .menu-item i {
-        margin-right: 10px;
-    }
+.menu-item i {
+    margin-right: 10px;
+}
 
-    .menu-item:hover {
-        background: #f1f3ff;
-    }
+.menu-item:hover {
+    background: #f1f3ff;
+}
 
-    .menu-item.active {
-        background: #eef1ff;
-        color: #5563de;
-        font-weight: 600;
-    }
+.menu-item.active {
+    background: #eef1ff;
+    color: #5563de;
+    font-weight: 600;
+}
 
 .top_bar {
     padding: 20px 20px 0px 20px;
@@ -48,9 +51,9 @@
     margin-right: 20px;
 }
 
-    .dashboard-button:hover {
-        transform: translateY(-2px);
-        color: white;
-    }
+.dashboard-button:hover {
+    transform: translateY(-2px);
+    color: white;
+}
 
 

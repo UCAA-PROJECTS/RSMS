@@ -37,7 +37,7 @@
 				
 				<div class="chart-header">
 					<div class="parent">
-						<strong class="trend-filter">Temperature Trend</strong>
+						<strong class="trend-filter p-2">Temperature Trend</strong>
 						<!-- <span class="trend-filter">Last 7 Days</span> -->
 						<div class="quick-filters">
 							<button class="download-btn" id="last1HourBtn">Last 1 hour</button>
@@ -46,7 +46,9 @@
 						</div>
 
 						<div class="quick-filters">
-							<input type="date" id="startDate" class="date-input" />
+							<span class="p-2">From: </span>
+							<input type="date" id="startDate" class="date-input" /> 
+							<span class="p-2">To: </span>
 							<input type="date" id="endDate" class="date-input" />
 
 							<button type="button" class="download-btn" id="showHistoryBtn">

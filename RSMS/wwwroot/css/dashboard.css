@@ -175,7 +175,7 @@ body {
         text-decoration: none;
         }
 
-/* @* changed sesnor grid from 320 to 200px *@ */
+/* @* changed sensor grid from 320 to 200px *@ */
     .shelter-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

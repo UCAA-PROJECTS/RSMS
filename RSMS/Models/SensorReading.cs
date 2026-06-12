@@ -14,6 +14,9 @@ namespace RSMS.Models
         public bool SmokeDetected { get; set; }
         public bool IntrusionDetected { get; set; }
         //public bool WaterLeakDetected { get; set; }
-        public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
+        
+        //removed the timestamp default value = DateTime.Now(), this is because we want to record the time when data was sent 
+        //from the sensor not the time when data was saved into the database.
+        public DateTime TimeStamp { get; set; }
     }
 }

@@ -3,6 +3,7 @@ import time
 import random
 import threading
 import paho.mqtt.client as mqtt
+from datetime import datetime, timezone
 
 # -----------------------------
 # Configuration
@@ -23,6 +24,7 @@ SHELTERS = [
 def generate_sensor_data(shelter_code):
     """Generate one sensor reading for the given shelter"""
     return {
+        "RecordedTime": datetime.now(timezone.utc).isoformat(),
         "ShelterCode": shelter_code,
         "Temperature": round(random.uniform(20.0, 37.0), 1),
         "Humidity": round(random.uniform(40.0, 85.0), 1),
@@ -66,4 +68,4 @@ if __name__ == "__main__":
 
     # Keep main thread alive
     while True:
-        time.sleep(1)
+        time.sleep(30)

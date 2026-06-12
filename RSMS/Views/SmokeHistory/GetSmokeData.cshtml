@@ -1,0 +1,92 @@
+﻿@{
+	ViewBag.Title = "Smoke Sensor";
+}
+<div class="app-container">
+	<partial name="_SideMenu" />
+	<!--Main Area-->
+	<div class="main-content">
+
+		<!--Header-->
+		<div class="page-header">
+			<h2>
+				<i class="fas fa-shield-alt"></i>
+				Smoke Sensor
+			</h2>
+		</div>
+
+		<!--Cards Row-->
+		<div class="cards-wrapper">
+			<div class="card smoke-card">
+				<div class="card-title">
+					Current Sensor Status
+					<i class="fas fa-fire icon-red"></i>
+				</div>
+				<div id="current-smoke-value" class="not-sure-smoke">
+					N/A
+				</div>
+
+				<div class="status-pill status-unknown" id="smokeStatus">
+					Status: Unknown
+				</div>
+
+			</div>
+			<div class="card readings-card">
+				<!--<div class="chart-header">-->
+					<div class="parent">
+						<strong class="trend-filter p-2">Smoke Trend</strong>
+						<!-- <span class="trend-filter">Last 7 Days</span> -->
+						<div class="quick-filters">
+							<button class="download-btn" id="last1HourSmokeBtn">Last 1 hour</button>
+							<button class="download-btn" id="last24HoursSmokeBtn">Last 24 hours</button>
+							<button class="download-btn" id="last7DaysSmokeBtn">Last 7 days</button>
+						</div>
+
+						<div class="quick-filters">
+							<span class="p-2">From: </span>
+							<input type="date" id="startSmokeDate" class="date-input" />
+							<span class="p-2">To: </span>
+							<input type="date" id="endSmokeDate" class="date-input" />
+
+							<button type="button" class="download-btn" id="showHistorySmokeBtn">
+								Show History
+							</button>
+							<button type="button" class="download-btn" onclick="returntoLive()">Return to Live</button>
+						</div>
+					</div>
+				<!--</div>--> 
+				<div class="table-responsive">
+					<table class="table history-table" id="smokeTable">
+						<thead>
+							<tr>
+								<th>Timestamp (UTC)</th>
+								<th>Event</th>
+								<th>Sensor</th>
+								<th>Status</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+</div>
+
+@section Scripts {
+	<link rel="stylesheet" asp-append-version="true" href="~/css/smokePage.css" />
+	@* <link rel="stylesheet" href="~/css/tempchart.css" /> *@
+	<script>
+		window.shelterCode ="@ViewBag.ShelterCode";
+	</script>
+
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+	@* <script src="/js/tempChart.js"></script> *@
+
+	<script src="/lib/microsoft-signalr/signalr.js"></script>
+	<script src="/js/smokeSignalR.js"></script>
+	<script src="/js/smokeHistoryData.js"></script> 
+
+}

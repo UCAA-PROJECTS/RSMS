@@ -1,4 +1,6 @@
-﻿namespace RSMS.Models
+﻿using NuGet.Packaging.Signing;
+
+namespace RSMS.Models
 {
     public class ShelterStatusResult
     {
@@ -7,5 +9,6 @@
         public ShelterStatus HumidityStatus { get; set; }
         public ShelterStatus smokeStatus { get; set; }
         public ShelterStatus intrudeStatus { get; set; }
+        public DateTime RecordedTime { get; set; }
     }
 }

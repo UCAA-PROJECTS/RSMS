@@ -18,22 +18,31 @@
     <link rel="stylesheet" href="~/css/sidemenu.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/downloadbtn.css" />
     <link rel="stylesheet" href="~/css/livefeed.css" />
+    <link rel="stylesheet" href="~/css/generalDesign.css"/>
 </head>
 <body>
-
-    @* changed from container to container-fluid *@
+    <!--<main >
+        @* changed from container to container-fluid *@
+        <div class="container-fluid px-0">
+            <main role="main">
+                @* @RenderBody() *@
+            </main>
+        </div>
+    </main> -->
     <div class="container-fluid">
-        <main role="main" class="pb-3">
+        <main role="main" class="row px-0">
             @RenderBody()
         </main>
+        <footer class="footer text-muted row pt-3">
+            @* changed from container to container-fluid *@
+            <div align="center">
+                &copy; Remote Shelter Monitoring System. All rights reserved.
+            </div>
+        </footer>
+
     </div>
 
-    <footer class="border-top footer text-muted">
-        @* changed from container to container-fluid *@
-        <div class="container-fluid" align="center">
-            &copy; Remote Shelter Monitoring System. All rights reserved.
-        </div>
-    </footer>
+    
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>

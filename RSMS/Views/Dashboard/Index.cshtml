@@ -10,9 +10,7 @@
     </div>
 
     <div class="ucaa-center">
-        <h2 class="system-title">
-            Remote Shelter Monitoring System
-        </h2>
+        <h1 class="system-title"> REMOTE SHELTER MONITORING SYSTEM</h1>
     </div>
 
 </div>
@@ -43,7 +41,7 @@
         @* <div class="system-health"> *@
         @* <span>System Health</span> *@
         @* </div> *@
-
+        <div class="pe-5"></div>
         <div class="notification">
             @* <span class="bell">🔔</span> *@
 
@@ -94,8 +92,8 @@
                     <a asp-controller="TempHistory"
                        asp-action="Temperature"
                        asp-route-code="@shelter.ShelterCode"
-                       class="sensor-box sensor-button">
-
+                       class="sensor-box sensor-button"> 
+                    
                         <div class="sensor-title">Temperature</div>
                         <i class="fas fa-thermometer-half"></i>
 
@@ -134,9 +132,9 @@
 
                     @* trying the same appearance for shelter access like that of temperature *@
 
-<!-- Shelter Access -->
+                    <!-- Shelter Access -->
                     <a asp-controller="ShelterHistory"
-                    asp-action="ShelterAccess"
+                       asp-action="GetShelterAccessHistory"
                     asp-route-code="@shelter.ShelterCode"
                     class="sensor-box sensor-button">
 
@@ -154,9 +152,9 @@
                     </a>
 
                     <!-- Smoke -->
-                    <a asp-controller="ShelterHistory"
-                    asp-action="Smoke"
-                    asp-route-code="@shelter.ShelterCode"
+                    <a asp-controller="SmokeHistory"
+                       asp-action="GetSmokeData"
+                       asp-route-code="@shelter.ShelterCode"
                     class="sensor-box sensor-button">
 
                         <div class="sensor-title">Smoke</div>
