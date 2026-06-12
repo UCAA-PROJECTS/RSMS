@@ -15,10 +15,17 @@ namespace RSMS.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Temperature(string code) 
+        public async Task<IActionResult> Temperature(string? shelterCode, string? code)
         {
+            var selectedShelterCode = (shelterCode ?? code)?.Trim().ToUpperInvariant();
+
+            if (string.IsNullOrWhiteSpace(selectedShelterCode))
+            {
+                return BadRequest("Shelter code is required.");
+            }
+
             var data = await _context.Readings
-                .Where(r => r.ShelterCode == code)
+                .Where(r => r.ShelterCode == selectedShelterCode)
                 .OrderByDescending(r => r.TimeStamp)
                 .Select(r => new TemperatureView
                 {
@@ -27,7 +34,7 @@ namespace RSMS.Controllers
                 })
                 .ToListAsync();
 
-            ViewBag.ShelterCode = code;
+            ViewBag.ShelterCode = selectedShelterCode;
             return View(data);
 
         }

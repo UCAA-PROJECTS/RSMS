@@ -1,5 +1,17 @@
 ﻿
 document.addEventListener("DOMContentLoaded", () => {
+	const shelterCode = String(
+		window.shelterCode
+		|| new URLSearchParams(window.location.search).get("shelterCode")
+		|| new URLSearchParams(window.location.search).get("code")
+		|| ""
+	).trim().toUpperCase();
+
+	if (!shelterCode) {
+		console.error("Humidity live updates cannot start without a shelter code.");
+		return;
+	}
+
 	const connection = new signalR.HubConnectionBuilder()
 		.withUrl("/shelterHub")
 		.withAutomaticReconnect()
@@ -16,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	connection.on("ShelterUpdated", data => {
 
-		if (data.shelterCode !== shelterCode) return;
+		if (String(data.shelterCode || "").toUpperCase() !== shelterCode) return;
 
 		console.log("Live update received:", data);
 

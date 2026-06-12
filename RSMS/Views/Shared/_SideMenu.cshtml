@@ -8,10 +8,10 @@
 }
 <div class="sidebar">
 	<a class="menu-item @IsActive("Temperature")" asp-controller="TempHistory" asp-action="Temperature"
-		asp-route-code="@ViewBag.ShelterCode"><i class="fas fa-thermometer-half"></i> Temperature 
+		asp-route-shelterCode="@ViewBag.ShelterCode"><i class="fas fa-thermometer-half"></i> Temperature
 	</a>
 	
-	<a class="menu-item @IsActive("Humidity")" asp-controller="HumHistory" asp-action="Humidity" asp-route-code="@ViewBag.ShelterCode">
+	<a class="menu-item @IsActive("Humidity")" asp-controller="HumHistory" asp-action="Humidity" asp-route-shelterCode="@ViewBag.ShelterCode">
 		<i class="fas fa-droplet"></i> Humidity
 	</a>
 
@@ -19,15 +19,15 @@
 		<i class="fas fa-door-open"></i> Shelter Access
 	</div>
 
-	<div class="menu-item">
+	<a class="menu-item @IsActive("Stabilizer")" asp-controller="Stabilizer" asp-action="Stabilizer" asp-route-shelterCode="@ViewBag.ShelterCode">
 		<i class="fas fa-plug"></i> Stabilizer
-	</div>
+	</a>
 
 	<div class="menu-item">
 		<i class="fas fa-battery-full"></i> Battery
 	</div>
 
-	<div class="top-bar">
+	<div class="sidebar-footer">
 		<a asp-controller="Dashboard" asp-action="Index"
 		   class="dashboard-button">← Back to Dashboard</a>
 	</div>

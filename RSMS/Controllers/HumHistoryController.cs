@@ -15,10 +15,17 @@ namespace RSMS.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Humidity(string code)
+        public async Task<IActionResult> Humidity(string? shelterCode, string? code)
         {
+            var selectedShelterCode = (shelterCode ?? code)?.Trim().ToUpperInvariant();
+
+            if (string.IsNullOrWhiteSpace(selectedShelterCode))
+            {
+                return BadRequest("Shelter code is required.");
+            }
+
             var data = await _context.Readings
-                .Where(r => r.ShelterCode == code)
+                .Where(r => r.ShelterCode == selectedShelterCode)
                 .OrderByDescending(r => r.TimeStamp)
                 .Select(r => new HumidityView
                 {
@@ -27,7 +34,7 @@ namespace RSMS.Controllers
                 })
                 .ToListAsync();
 
-            ViewBag.ShelterCode = code;
+            ViewBag.ShelterCode = selectedShelterCode;
             return View(data);
 
         }
@@ -107,9 +114,9 @@ namespace RSMS.Controllers
 
             var summary = new HumiditySummaryDTO
             {
-                AvgHumidity = Math.Round(await query.AverageAsync(r => r.Temperature), 1),
-                MinHumidity = await query.MinAsync(r => r.Temperature),
-                MaxHumidity = await query.MaxAsync(r => r.Temperature),
+                AvgHumidity = Math.Round(await query.AverageAsync(r => r.Humidity), 1),
+                MinHumidity = await query.MinAsync(r => r.Humidity),
+                MaxHumidity = await query.MaxAsync(r => r.Humidity),
                 SensorStatus = Status
             };
             return Json(summary);

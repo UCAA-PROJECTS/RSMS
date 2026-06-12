@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿//using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using MQTTnet;
 using MQTTnet.Client;
@@ -10,6 +10,7 @@ using RSMS.Hubs;
 using RSMS.Models;
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.SignalR;
 
 //To run code as it was originally, comment everyline inside the //ADDED_LINES ....//END_OF_ADDED_LINES. then uncomment the commented code. 
 
@@ -29,7 +30,7 @@ namespace RSMS.Services
         private MqttClientOptions _mqttClientConnectOptions;
         private MqttTopicFilter _mqttClientSubscriptionOptions;
         private MqttClientDisconnectOptions _mqttClientDisconnectOptions;
-        private string MqttServerAddress => "localhost"; //this will be changed to the actual mqtt server 
+        private string MqttServerAddress => "localhost"; //192.168.11.84 
         private int MqttServerPort => 1883;
 
         public MqttSubscriber(IServiceScopeFactory scopeFactory, IHubContext<ShelterHub> hub, ILogger<MqttSubscriber> logger)
@@ -52,7 +53,7 @@ namespace RSMS.Services
 
             //create mqtt client subscription options.
             _mqttClientSubscriptionOptions = new MqttTopicFilterBuilder()
-                    .WithTopic("shelters/+")
+                    .WithTopic("shelters/+/+")
                     .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
                     .Build();
 
@@ -121,77 +122,183 @@ namespace RSMS.Services
             }
         }
 
-        private Task HandleMessageAsync(MqttApplicationMessageReceivedEventArgs e)
+        private  Task HandleMessageAsync(MqttApplicationMessageReceivedEventArgs e)
         {
-            // Wrap the entire handler to catch all exceptions
             return Task.Run(async () =>
             {
                 try
                 {
+                    var topic = e.ApplicationMessage.Topic;
                     var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                    var parts = topic.Split('/');
 
-                    var dto = JsonSerializer.Deserialize<SensorInputDTO>(
-                        payload,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    if (dto == null) return;
-
-                    using var scope = _scopeFactory.CreateScope();
-
-                    // Get the Application DbContext service, this is used to acecess the Database table "Shelters", this is to make sure we first cofirm if the payload 
-                    //obtained has a known shelter id, ensures entegrity of sensor data. 
-                    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    var shelterStatusService = scope.ServiceProvider.GetRequiredService<IShelterService>();
-
-                    var shelter = await context.Shelters.FirstOrDefaultAsync(s => s.ShelterCode == dto.ShelterCode);
-
-                    if (shelter == null)
+                    if (parts.Length != 3 || parts[0] != "shelters")
                     {
-                        _logger.LogWarning("Invalid shelter code: {ShelterCode}", dto.ShelterCode);
+                        _logger.LogWarning("Invalid MQTT topic: {Topic}", topic);
                         return;
                     }
-                    
-                    //extract only the relevant data for the "Readings" table
-                    var reading = new SensorReading
+                    var shelterCodeFromTopic = parts[1];
+                    var sensorType = parts[2].ToLower();
+                    // Get the Application DbContext service, this is used to acecess the Database table "Shelters", this is to make sure we first cofirm if the payload 
+                    //obtained has a known shelter id, ensures integrity of sensor data. 
+                    using var scope = _scopeFactory.CreateScope();
+                    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    var shelter = await context.Shelters.FirstOrDefaultAsync(s => s.ShelterCode == shelterCodeFromTopic);
+                    if (shelter == null)
                     {
-                        ShelterCode = shelter.ShelterCode,
-                        Temperature = dto.Temperature,
-                        Humidity = dto.Humidity,
-                        SmokeDetected = dto.SmokeDetected,
-                        IntrusionDetected = dto.IntrusionDetected
-                    };
+                        _logger.LogWarning("MQTT message rejected. Unknown shelter code: {ShelterCode}", shelterCodeFromTopic);
+                        return;
+                    }
 
-                    //Add a new reading to the Database
-                    context.Readings.Add(reading);
-                    await context.SaveChangesAsync();
-                    var statusResult = shelterStatusService.Evaluate(reading);
-                    await _hub.Clients
-                        .Group(shelter.ShelterCode)
-                        .SendAsync("ShelterUpdated", new
-                        {
-                            shelter.ShelterCode,
-                            shelter.ShelterName,
-                            reading.Temperature,
-                            reading.Humidity,
-                            reading.SmokeDetected,
-                            reading.IntrusionDetected,
-                            temperatureStatus = statusResult.TemperatureStatus.ToString(),
-                            humidityStatus = statusResult.HumidityStatus.ToString(),
-                            smokeStatus = statusResult.smokeStatus.ToString(),
-                            intrudeStatus = statusResult.intrudeStatus.ToString(),
-                            overallStatus = statusResult.OverallStatus.ToString(),
+                    switch (sensorType)
+                    {
+                        case "environment":
+                            await HandleEnvironmentMessageAsync(payload, shelter, context, scope);
+                            break;
 
+                        case "stabilizer":
+                            await HandleStabilizerMessageAsync(payload, shelter, context);
+                            break;
 
-                        });
-
-                    _logger.LogInformation("Shelter {Shelter} updated via MQTT.", shelter.ShelterCode);
+                        default:
+                            _logger.LogWarning("Unknown sensor type: {SensorType}", sensorType);
+                            break;
+                    }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error processing MQTT message.");
+                    _logger.LogError(ex, "Error processing MQTTmessage.");
                 }
+
             });
+            
         }
+
+        private async Task  HandleEnvironmentMessageAsync(string payload, Shelter shelter, ApplicationDbContext context, IServiceScope scope) 
+        { 
+
+
+            var dto = JsonSerializer.Deserialize<SensorInputDTO>(
+                payload,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (dto == null) return;
+
+            if (dto.ShelterCode != shelter.ShelterCode) 
+            {
+                _logger.LogWarning("Payload shelter code mismatch. Topic={TopicShelter}, Payload={PayloadShelter}",shelter.ShelterCode,dto.ShelterCode);
+                return;
+            }
+
+            var shelterStatusService = scope.ServiceProvider.GetRequiredService<IShelterService>();
+
+                    
+            //extract only the relevant data for the "Readings" table
+            var reading = new SensorReading
+            {
+                ShelterCode = shelter.ShelterCode,
+                Temperature = dto.Temperature,
+                Humidity = dto.Humidity,
+                SmokeDetected = dto.SmokeDetected,
+                IntrusionDetected = dto.IntrusionDetected
+            };
+
+            //Add a new reading to the Database
+            context.Readings.Add(reading);
+            await context.SaveChangesAsync();
+            var statusResult = shelterStatusService.Evaluate(reading);
+            await _hub.Clients.Group(shelter.ShelterCode).SendAsync("ShelterUpdated", new
+            {
+                shelter.ShelterCode,
+                shelter.ShelterName,
+                reading.Temperature,
+                reading.Humidity,
+                reading.SmokeDetected,
+                reading.IntrusionDetected,
+                temperatureStatus = statusResult.TemperatureStatus.ToString(),
+                humidityStatus = statusResult.HumidityStatus.ToString(),
+                smokeStatus = statusResult.smokeStatus.ToString(),
+                intrudeStatus = statusResult.intrudeStatus.ToString(),
+                overallStatus = statusResult.OverallStatus.ToString(),
+
+
+            });
+
+            _logger.LogInformation("Environment data updated for shelter {ShelterCode}.", shelter.ShelterCode);
+
+        }
+
+        private async Task HandleStabilizerMessageAsync(string payload, Shelter shelter, ApplicationDbContext context)
+        {
+            var dto = JsonSerializer.Deserialize<StabilizerReadingDTO>(payload,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (dto == null)
+                return;
+
+            if (dto.ShelterCode != shelter.ShelterCode)
+            {
+                _logger.LogWarning("Payload shelter code mismatch. Topic={TopicShelter}, Payload={PayloadShelter}", shelter.ShelterCode, dto.ShelterCode);
+                return;
+            }
+
+            var status = EvaluateStabilizerStatus(dto.InputVoltage, dto.OutputVoltage, dto.Current, dto.LoadPercentage);
+            var reading = new StabilizerReading
+            {
+                ShelterCode = shelter.ShelterCode,
+                InputVoltage = dto.InputVoltage,
+                OutputVoltage = dto.OutputVoltage,
+                Current = dto.Current,
+                Frequency = dto.Frequency,
+                LoadPercentage = dto.LoadPercentage,
+                Status = status,
+                TimeStamp = dto.TimeStamp,
+            };
+
+            context.StabilizerReadings.Add(reading);
+            await context.SaveChangesAsync();
+
+            await _hub.Clients.Group(shelter.ShelterCode).SendAsync("StabilizerUpdated", new 
+            {
+                shelter.ShelterCode,
+                shelter.ShelterName,
+                reading.InputVoltage,
+                reading.OutputVoltage,
+                reading.Current,
+                reading.Frequency,
+                reading.LoadPercentage,
+                reading.Status,
+                statusClass = StabilizerStatusEvaluator.CssClass(reading.Status),
+                reading.TimeStamp
+            });
+
+            _logger.LogInformation("Stabilizer data updated for shelter {ShelterCode}.", shelter.ShelterCode);
+        }
+        private static string EvaluateStabilizerStatus(double inputVoltage, double outputVoltage, double current, double loadPercentage)
+        {
+        if (inputVoltage < 180 || inputVoltage > 260)
+            return "Critical";
+
+        if (outputVoltage < 200 || outputVoltage > 245)
+            return "Critical";
+
+        if (current > 25 || loadPercentage > 90)
+            return "Warning";
+
+        if (inputVoltage < 200 || inputVoltage > 250)
+            return "Warning";
+
+        if (outputVoltage < 210 || outputVoltage > 235)
+            return "Warning";
+
+        if (current > 20 || loadPercentage > 80)
+            return "Warning";
+
+        return "Normal";
+        }
+        
+
+
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {

@@ -18,7 +18,8 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<IShelterService, ShelterStatusService>(); 
+builder.Services.AddScoped<IShelterService, ShelterStatusService>();
+builder.Services.AddScoped<IStabilizerService, StabilizerService>();
 builder.Services.AddHostedService<MqttSubscriber>();
 builder.Services.AddSignalR();
 
