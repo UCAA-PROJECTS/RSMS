@@ -13,6 +13,8 @@ namespace RSMS.Data
         public DbSet<Shelter> Shelters { get; set; }
         public DbSet<SensorReading> Readings { get; set; }
 
+        public DbSet<StabilizerReading> StabilizerReadings { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -29,6 +31,15 @@ namespace RSMS.Data
                 new Shelter { ShelterCode = "GP001", ShelterName = "GP Shelter" },
                 new Shelter { ShelterCode = "ILS002", ShelterName = "ILS Shelter" },
                 new Shelter { ShelterCode = "DVOR003", ShelterName = "DVOR Shelter" });
+
+            builder.Entity<StabilizerReading>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.ShelterCode)
+                .HasMaxLength(20)
+                .IsRequired();
+            });
                 
         }
     }

@@ -1,5 +1,6 @@
 ﻿@{
 	ViewBag.Title = "Temperature Sensor";
+	var latest = (Model as IEnumerable<TemperatureView>)?.FirstOrDefault();
 }
 <div class="app-container">
     <partial name="_SideMenu" />
@@ -23,7 +24,7 @@
 					<i class="fas fa-thermometer-half icon-orange"></i>
 				</div>
 				<div class="temp-value" id="currentTemp">
-					-- °C
+					@(latest == null ? "-- °C" : $"{latest.Value:0.0} °C")
 				</div>
 
 				<div class="status-pill status-unknown" id="tempStatus">

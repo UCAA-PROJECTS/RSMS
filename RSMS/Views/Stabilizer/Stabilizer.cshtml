@@ -1,0 +1,192 @@
+﻿@using RSMS.Services
+@{
+    ViewData["Title"] = "Stabilizer Sensor";
+    var latest = ViewBag.Latest as StabilizerReading;
+    var logs = ViewBag.Logs as List<StabilizerReading>;
+    var shelterCode = ViewBag.ShelterCode as string;
+
+    var voltageDifference = latest == null ? 0 : latest.InputVoltage - latest.OutputVoltage;
+}
+<div class="app-container">
+<partial name="_SideMenu" />
+<div class="main-content">
+<div class="stabilizer-container">
+    <div class="page-header">
+        <h2>
+            <i class="fas fa-shield-alt"></i>
+            Shelter Power Monitoring
+        </h2>
+    </div>
+
+
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-title">
+                <i class="fas fa-plug"></i>
+                Input Voltage
+            </div>
+            <div class="stat-value" id="inputVoltage">
+                @(latest?.InputVoltage.ToString("0.0") ?? "-") V
+            </div>
+            <span class="stat-trend">Incoming mains voltage</span>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">
+                <i class="fas fa-wave-square"></i>
+                Output Voltage
+            </div>
+            <div class="stat-value" id="outputVoltage">
+                @(latest?.OutputVoltage.ToString("0.0") ?? "-") V
+            </div>
+            <span class="stat-trend">Regulated output voltage</span>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">
+                <i class="fas fa-right-left"></i>
+                Voltage Difference
+            </div>
+            <div class="stat-value" id="voltageDifference">
+                @(latest == null ? "--" : voltageDifference.ToString("0.0")) V
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">
+                <i class="fas fa-circle-check"></i>
+                Operational Status
+            </div>
+            <div class="stat-value status-text" id="statusText">
+                @(latest?.Status ?? "Normal")
+            </div>
+            <span id="statusBadge" class="status-pill @(latest == null? "status-normal": StabilizerStatusEvaluator.CssClass(latest.Status))">
+            @(latest?.Status ?? "Normal")
+            </span>
+        </div>
+
+    </div>
+
+    <div class="main-dashboard-grid">
+        <div class="card-modern">
+            <div class="card-header">
+            <h3><i class="fas fa-chart-line"> Voltage Trend</i></h3>
+            <div class="chart-actions">
+                <button type="button" id="liveChartBtn" class="see-link active-chart-btn">
+                    Resume Live
+                </button>
+
+                <button type="button" id="last24HourBtn" class="see-link">
+                    Last 24 hours
+                </button>
+            </div>
+            </div>
+    
+
+            <div class="chart-wrapper">
+                <canvas id="voltageChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card-modern">
+            <div class="card-header">
+                <h3> <i class="fas fa-gauge-high"></i> Power Details</h3>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Current</span>
+                <span class="info-value" id="currentValue">
+                    @(latest?.Current.ToString("0.00") ?? "--") A
+                </span>
+
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Frequency</span>
+                <span class="info-value" id="frequencyValue">
+                    @(latest?.Frequency.ToString("0.0") ?? "--") Hz
+                </span>
+
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Load Percentage</span>
+                <span class="info-value" id="loadValue">
+                    @(latest?.LoadPercentage.ToString("0") ?? "--")%
+                </span>
+
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Last Updated</span>
+                <span class="info-value" id="lastUpdated">
+                    @(latest?.TimeStamp.ToLocalTime().ToString("g") ?? "--")
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="bottom-section">
+        <div class="section-title">
+            <i class="fas fa-list"></i>
+            Recent Stabilizer Logs
+            <a asp-asp-controller="Stabilizer" asp-action="Download"
+            asp-route-shelterCode="@shelterCode" class="download-btn">
+            Download History
+            </a>
+
+        </div>
+        <table class="logs-table">
+            <thead>
+                <tr>
+                    <th>TimeStamp</th>
+                    <th>Input (V)</th>
+                    <th>Output (V)</th>
+                    <th>Difference (V)</th>
+                    <th>Current</th>
+                    <th>Load</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="logsTableBody">
+                @if(logs != null)
+                {
+                    foreach(var item in logs){
+                        var diff = item.InputVoltage - item.OutputVoltage;
+                        <tr>
+                            <td>@item.TimeStamp.ToLocalTime().ToString("MMM d, hh:mm tt")</td>
+                            <td>@item.InputVoltage.ToString("0.0")</td>
+                            <td>@item.OutputVoltage.ToString("0.0")</td>
+                            <td>@diff.ToString("0.0")</td>
+                            <td>@item.Current.ToString("0.00")</td>
+                            <td>@item.LoadPercentage.ToString("0")</td>
+                            <td>
+                                <span class="status-pill @StabilizerStatusEvaluator.CssClass(item.Status)">
+                                    @item.Status
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+</div>
+</div>
+
+@section Scripts{
+    <link rel="stylesheet" href="~/css/stabilizer.css" asp-append-version="true" />
+    <script>
+        window.shelterCode = "@shelterCode";
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/lib/microsoft-signalr/signalr.js"></script>
+    <script src="~/js/stabilizer.js" asp-append-version="true"></script>
+}

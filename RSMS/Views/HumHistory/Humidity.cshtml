@@ -1,5 +1,6 @@
 ﻿@{
 	ViewBag.Title = "Humidity Sensor";
+	var latest = (Model as IEnumerable<HumidityView>)?.FirstOrDefault();
 }
 
 @section Scripts {
@@ -40,7 +41,7 @@
 					<i class="fas fa-droplet"></i>
 				</div>
 				<div class="temp-value" id="currentHum">
-					-- %
+					@(latest == null ? "-- %" : $"{latest.Value:0.0} %")
 				</div>
 
 				<div class="status-pill status-unknown" id="humStatus">

@@ -91,9 +91,9 @@
 
                     <a asp-controller="TempHistory"
                        asp-action="Temperature"
-                       asp-route-code="@shelter.ShelterCode"
-                       class="sensor-box sensor-button"> 
-                    
+                       asp-route-shelterCode="@shelter.ShelterCode"
+                       class="sensor-box sensor-button">
+
                         <div class="sensor-title">Temperature</div>
                         <i class="fas fa-thermometer-half"></i>
 
@@ -112,7 +112,7 @@
                     @* trying the same appearance for humidity like that of temperature *@
                     <a asp-controller="HumHistory"
                        asp-action="Humidity"
-                       asp-route-code="@shelter.ShelterCode"
+                       asp-route-shelterCode="@shelter.ShelterCode"
                        class="sensor-box sensor-button">
 
                         <div class="sensor-title">Humidity</div>
@@ -193,9 +193,9 @@
                     </a>
 
                     <!-- Stabilizer -->
-                    <a asp-controller="ShelterHistory"
+                    <a asp-controller="Stabilizer"
                     asp-action="Stabilizer"
-                    asp-route-code="@shelter.ShelterCode"
+                       asp-route-shelterCode="@shelter.ShelterCode"
                     class="sensor-box sensor-button">
 
                         <div class="sensor-title">Stabilizer</div>
@@ -213,7 +213,7 @@
 
                             @* default green dot *@
 
-                        <div class="dot green-dot"></div>
+                        <div class="dot gray-dot" id="stab-dot-@shelter.ShelterCode"></div>
                     </a>
 
                 </div>
@@ -297,7 +297,7 @@ connection.on("ShelterUpdated", data => {
         }
     }
 
-    function updateBadge(badgeId, status) {
+   function updateBadge(badgeId, status) {
 
         const badge = document.getElementById(badgeId);
         if (!badge) return;
@@ -351,6 +351,89 @@ connection.on("ShelterUpdated", data => {
     // -----------------------------
     updateBadge(`status-banner-${shelter}`, data.overallStatus);
 });
+
+
+        connection.on("StabilizerUpdated", data => {
+            console.log("Stabilizer update:", data);
+            const shelter = data.shelterCode;
+            if(!shelter) return;
+
+            const stabilizerValue = document.getElementById(`stabilizer-${shelter}`);
+            const stabilizerDot = document.getElementById(`stab-dot-${shelter}`);
+
+            if(stabilizerValue){
+                stabilizerValue.innerText = data.status ?? "--";
+            }
+
+            if(stabilizerDot){
+                stabilizerDot.classList.remove(
+                    "red-dot",
+                    "yellow-dot",
+                    "green-dot",
+                    "gray-dot"
+                );
+
+                const status = (data.status || "").toLowerCase();
+                switch(status)
+                {
+                    case "critical":
+                    case "alert":
+                    stabilizerDot.classList.add("red-dot");
+                    break;
+
+                    case "warning":
+                    stabilizerDot.classList.add("yellow-dot");
+                    break;
+
+                    case "normal":
+                    case "ok":
+                    stabilizerDot.classList.add("green-dot");
+                    break;
+
+                    default:
+                    stabilizerDot.classList.add("gray-dot");
+                    break;
+                }
+            }
+            updateOverallDashboardBadge(shelter, data.status);
+        });
+
+                function updateOverallDashboardBadge(shelterCode, stabilizerStatus){
+                    const badge = document.getElementById(`status-banner-${shelterCode}`);
+                    if(!badge) return;
+
+                    const status = (stabilizerStatus || "").toLowerCase();
+
+                    badge.classList.remove(
+                    "status-alert",
+                    "status-warning",
+                    "status-ok",
+                    "status-unknown"
+                    );
+
+                    if(status === "critical" || status === "alert")
+                    {
+                        badge.innerText = "ALERT";
+                        badge.classList.add("status-alert");
+                    }
+
+                    else if(status === "warning")
+                    {
+                        badge.innerText = "WARNING";
+                        badge.classList.add("status-warning");
+
+                    }
+
+                    else if(status === "normal" || status === "ok")
+                    {
+                        badge.innerText = "OK";
+                        badge.classList.add("status-ok");
+                    }
+                    else{
+                        badge.innerText = "UNKNOWN";
+                        badge.classList.add("status-unknown");
+                    }
+                }
 
             // -----------------------------
             // Start connection

@@ -21,16 +21,10 @@
     <link rel="stylesheet" href="~/css/generalDesign.css"/>
 </head>
 <body>
-    <!--<main >
-        @* changed from container to container-fluid *@
-        <div class="container-fluid px-0">
-            <main role="main">
-                @* @RenderBody() *@
-            </main>
-        </div>
-    </main> -->
-    <div class="container-fluid">
-        <main role="main" class="row px-0">
+
+    @* Keep page shells flush with the viewport so the sidebar can own its width. *@
+    <div class="container-fluid px-0">
+        <main role="main" class="site-main">
             @RenderBody()
         </main>
         <footer class="footer text-muted row pt-3">

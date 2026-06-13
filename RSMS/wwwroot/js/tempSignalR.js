@@ -1,5 +1,17 @@
 ﻿
 document.addEventListener("DOMContentLoaded", () => { 
+	const shelterCode = String(
+		window.shelterCode
+		|| new URLSearchParams(window.location.search).get("shelterCode")
+		|| new URLSearchParams(window.location.search).get("code")
+		|| ""
+	).trim().toUpperCase();
+
+	if (!shelterCode) {
+		console.error("Temperature live updates cannot start without a shelter code.");
+		return;
+	}
+
 	const connection = new signalR.HubConnectionBuilder()
 	.withUrl("/shelterHub")
 	.withAutomaticReconnect()
@@ -61,6 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		--------------------------*/
 		if (window.tempChart && !window.historicalMode) {
 			const now = new Date().toLocaleTimeString([], {hour: '2-digit',minute: '2-digit'});
+			if (String(data.shelterCode || "").toUpperCase() !== shelterCode) return;
 
 			window.tempChart.data.labels.push(now);
 			window.tempChart.data.datasets[0].data.push(data.temperature);
