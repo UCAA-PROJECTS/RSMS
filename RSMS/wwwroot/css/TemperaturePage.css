@@ -42,9 +42,9 @@
     height: 320px;
 }
 
-    .chart-card canvas {
-        max-width: 100%;
-    }
+.chart-card canvas {
+    max-width: 100%;
+}
 
 .card i {
     margin-left: 40px
@@ -103,21 +103,50 @@
 
 
 /*Table*/
+.table-card {
+    width: 100%;
+    height: 600px;
+    gap: 20px;
+}
+
+.table-responsive {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    display: block;
+    box-sizing: border-box;
+    max-width: 100%;
+    max-height: 100%;
+}
+
 .history-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-    .history-table th,
-    .history-table td {
-        padding: 12px;
-        border-bottom: 1px solid #eee;
-    }
+.history-table th, td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    font-size: smaller;
+    text-align: center;
+/*    text-justify: auto;*/
+}
 
-    .history-table th {
-        text-align: left;
-        background: #fafafa;
-    }
+.history-table th {
+    text-align: left;
+    background: #fafafa;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+
+.history-table .btn {
+    --bs-btn-padding-y: .25rem;
+    --bs-btn-padding-x: .5rem;
+    --bs-btn-font-size: .75rem;
+}
+
 
 /*Status Colors*/
 .status-alert {
@@ -156,10 +185,10 @@
 }
 
 /* Hover Effect */
-    .summary-card:hover {
-        transform: translateY(-4px);
+.summary-card:hover {
+    transform: translateY(-4px);
         
-    }
+}
 
 .summary-icon {
     width: 60px;
@@ -173,29 +202,29 @@
     font-size: 24px;
 }
 
-    .summary-icon.max {
-        background: linear-gradient(135deg, #ef4444, #f97316);
-    }
+.summary-icon.max {
+    background: linear-gradient(135deg, #ef4444, #f97316);
+}
 
-    .summary-icon.min {
-        background: linear-gradient(135deg, #06b6d4, #3b82f6);
-    }
+.summary-icon.min {
+    background: linear-gradient(135deg, #06b6d4, #3b82f6);
+}
 
-    .summary-icon.status {
-        background: linear-gradient(135deg, #10b981, #22c55e);
-    }
+.summary-icon.status {
+    background: linear-gradient(135deg, #10b981, #22c55e);
+}
 
 .summary-info {
     font-size: 14px;
     flex-direction: column;
 }
 
-    .summary-info h2 {
-        font-size: 28px;
-        font-weight: 700;
-        color: #111827;
-        margin: 0;
-    }
+.summary-info h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
 
 .summary-title {
     font-size: 14px;

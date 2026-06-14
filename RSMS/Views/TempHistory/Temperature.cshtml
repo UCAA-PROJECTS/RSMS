@@ -117,6 +117,25 @@
 
 		</div>
 		
+		<!-- History table-->
+		<div class="card table-card mt-4">
+			<div class="table-responsive">
+				<table class="table history-table" id="tempTable">
+					<thead >
+						<tr>
+							<th style="text-align:center">Timestamp (UTC)</th>
+							<th style="text-align:center">Event</th>
+							<th style="text-align:center">Status</th>
+							<th style="text-align:center">Description</th>
+						</tr>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</div>
+		</div>
+		
+
+
 	</div>
 
 </div>
@@ -124,16 +143,18 @@
 @section Scripts{
 	<link rel="stylesheet" asp-append-version="true" href="~/css/TemperaturePage.css" />
 	<link rel="stylesheet" href="~/css/tempchart.css" />
-    <script>
+	@* <link rel="stylesheet" href="~/lib/bootstrap/dist/css/"/> *@
+	@* <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap-grid.min.css"/>
+	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap-grid.rtl.css" />
+	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/" />*@
+    <script> 
         window.shelterCode ="@ViewBag.ShelterCode";
 	</script>
-
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-	<script src="/js/tempChart.js"></script>
-
 	<script src="/lib/microsoft-signalr/signalr.js"></script>
-    <script src="/js/tempSignalR.js"></script>
-	<script src="/js/tempSummary.js"></script>
-
+	<script type="module" src="/js/tempSignalR.js"></script>
+	<script type="module" src="/js/tempChart.js"></script>
+	<script src="/js/tempSummary.js"></script> 
+	<script src="/js/readingsTable.js"></script>
+	
 }

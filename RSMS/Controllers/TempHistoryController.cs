@@ -3,16 +3,19 @@ using Microsoft.EntityFrameworkCore;
 using RSMS.Data;
 using RSMS.DTO;
 using RSMS.Models;
+using RSMS.Services;
 
 namespace RSMS.Controllers
 {
     public class TempHistoryController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<MqttSubscriber> _logger;
 
-        public TempHistoryController(ApplicationDbContext context)
+        public TempHistoryController(ApplicationDbContext context, ILogger<MqttSubscriber> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Temperature(string? shelterCode, string? code)
@@ -61,12 +64,12 @@ namespace RSMS.Controllers
         public async Task<IActionResult> GetTemperatureSummary(string shelterCode)
         {
             string status;
-            //THIS IS 4 HOURS AGO, WHY NAME VARIABLE IS 6 HOURS?
+            //THIS IS 1 HOUR AGO, WHY NAME VARIABLE IS 6 HOURS?
             var sixHoursAgo = DateTime.UtcNow.AddHours(-1);
 
             var query = _context.Readings.Where(reading => reading.ShelterCode == shelterCode && reading.TimeStamp >= sixHoursAgo);
-                                                
-            
+
+
             var latestReading = await query.OrderByDescending(r => r.TimeStamp).FirstOrDefaultAsync();
             if (latestReading == null)
             {
@@ -116,8 +119,6 @@ namespace RSMS.Controllers
                 SensorStatus = status
             };
             return Json(summary);
-
-
         }
     }
 }

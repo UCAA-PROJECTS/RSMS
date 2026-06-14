@@ -7,7 +7,7 @@ namespace RSMS.Models
         public int Id { get; set; }
         [Required]
         [MaxLength(20)]
-        public string ShelterCode { get; set; }
+        public string ShelterCode { get; set; } = string.Empty;
         public Shelter Shelter { get; set; } = null!;
         public double Temperature { get; set; }
         public double Humidity { get; set; }

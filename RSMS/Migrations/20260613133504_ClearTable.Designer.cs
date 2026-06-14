@@ -12,8 +12,8 @@ using RSMS.Data;
 namespace RSMS.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260611065335_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260613133504_ClearTable")]
+    partial class ClearTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -290,6 +290,46 @@ namespace RSMS.Migrations
                             ShelterCode = "DVOR003",
                             ShelterName = "DVOR Shelter"
                         });
+                });
+
+            modelBuilder.Entity("RSMS.Models.StabilizerReading", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("Current")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Frequency")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("InputVoltage")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("LoadPercentage")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("OutputVoltage")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("ShelterCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("StabilizerReadings");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

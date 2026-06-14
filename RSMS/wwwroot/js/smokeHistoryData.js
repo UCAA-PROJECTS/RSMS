@@ -11,7 +11,7 @@ document.getElementById("last7DaysSmokeBtn")
 // adjust the tracking flag
 window.historicalMode = false;
 
-async function loadChartData(startDate = "", endDate = "") {
+async function loadTableData(startDate = "", endDate = "") {
 	//If user selected dates, switch to historical mode. 
 	//We set it to && because everytime the method is called, both values are passed
 	window.historicalMode = startDate !== "" && endDate !== "";
@@ -74,7 +74,7 @@ async function loadLastHoursSmoke(hours) {
 	const endDate = new Date();
 	const startDate = new Date();
 	startDate.setHours(endDate.getHours() - hours);
-	await loadChartData(startDate.toISOString(), endDate.toISOString());
+	await loadTableData(startDate.toISOString(), endDate.toISOString());
 }
 
 async function loadLastDaysSmoke(days) {
@@ -82,7 +82,7 @@ async function loadLastDaysSmoke(days) {
 	const endDate = new Date();
 	const startDate = new Date()
 	startDate.setDate(endDate.getDate() - days);
-	await loadChartData(startDate.toISOString(), endDate.toISOString());
+	await loadTableData(startDate.toISOString(), endDate.toISOString());
 }
 
 document.getElementById("showHistorySmokeBtn").addEventListener("click", () => {
@@ -101,7 +101,7 @@ document.getElementById("showHistorySmokeBtn").addEventListener("click", () => {
 	const endDate = new Date(endVal)
 	endDate.setHours(23, 59, 59, 999);
 
-	loadChartData(startDate.toISOString(), endDate.toISOString());
+	loadTableData(startDate.toISOString(), endDate.toISOString());
 });
 
 /* =====================================================

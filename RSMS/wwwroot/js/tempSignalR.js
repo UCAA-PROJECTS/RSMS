@@ -1,4 +1,7 @@
-﻿
+﻿//import the temperature table module
+import { addRowToTable, deleteAllRowsFromTable } from './readingsTable.js';
+
+
 document.addEventListener("DOMContentLoaded", () => { 
 	const shelterCode = String(
 		window.shelterCode
@@ -11,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		console.error("Temperature live updates cannot start without a shelter code.");
 		return;
 	}
+	console.log(`Shelter code on home page: ${window.shelterCode}`);
 
 	const connection = new signalR.HubConnectionBuilder()
 	.withUrl("/shelterHub")
@@ -87,6 +91,12 @@ document.addEventListener("DOMContentLoaded", () => {
 			window.tempChart.update();
 		}
 
+		/* -------------------------
+			Update Table
+		-------------------------- */
+		const historyTableBody = document.querySelector("#tempTable tbody");
+		const dt = { time: data.timeStamp, temperature: data.temperature };
+		addRowToTable(historyTableBody, dt )
 	});
 
 

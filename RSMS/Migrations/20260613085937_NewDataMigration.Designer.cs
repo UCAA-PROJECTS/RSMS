@@ -12,8 +12,8 @@ using RSMS.Data;
 namespace RSMS.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260611235059_AddStabilizer")]
-    partial class AddStabilizer
+    [Migration("20260613085937_NewDataMigration")]
+    partial class NewDataMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

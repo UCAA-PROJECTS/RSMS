@@ -26,7 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Migrations\" />
     <Folder Include="Views\Shared\Partial Views\" />
   </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties global_1json__JsonSchema="https://www.schemastore.org/grunt-cssmin-task.json" /></VisualStudio></ProjectExtensions>
 
 </Project>

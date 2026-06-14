@@ -1,9 +1,12 @@
 ﻿async function loadTempSummary() {
     const shelterCod = window.shelterCode;
+    console.log(`Shelter code received: ${shelterCod}`);
     try {
         const response = await fetch(
             `/TempHistory/GetTemperatureSummary?shelterCode=${shelterCod}`);
         const data = await response.json();
+
+        console.log("summary data received:", data);
 
         document.getElementById("avgTemp").innerText = `${data.avgTemperature}`;
         document.getElementById("minTemp").innerText = `${data.minTemperature}`;
@@ -44,10 +47,10 @@ async function loadSensorStatus() {
 }
     
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     //load immediately
-    loadTempSummary();
-    loadSensorStatus();
+    await loadTempSummary();
+    await loadSensorStatus();
 
     //refresh full summary every 1 hour
     setInterval(loadTempSummary, 3600000);

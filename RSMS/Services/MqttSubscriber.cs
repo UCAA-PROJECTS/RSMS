@@ -200,8 +200,10 @@ namespace RSMS.Services
                 Temperature = dto.Temperature,
                 Humidity = dto.Humidity,
                 SmokeDetected = dto.SmokeDetected,
-                IntrusionDetected = dto.IntrusionDetected
-            };
+                IntrusionDetected = dto.IntrusionDetected,
+                TimeStamp = dto.TimeStamp
+            }; 
+            _logger.LogInformation("Passed reading {Reading}", reading);
 
             //Add a new reading to the Database
             context.Readings.Add(reading);
@@ -209,6 +211,7 @@ namespace RSMS.Services
             var statusResult = shelterStatusService.Evaluate(reading);
             await _hub.Clients.Group(shelter.ShelterCode).SendAsync("ShelterUpdated", new
             {
+                dto.TimeStamp,
                 shelter.ShelterCode,
                 shelter.ShelterName,
                 reading.Temperature,
@@ -220,8 +223,6 @@ namespace RSMS.Services
                 smokeStatus = statusResult.smokeStatus.ToString(),
                 intrudeStatus = statusResult.intrudeStatus.ToString(),
                 overallStatus = statusResult.OverallStatus.ToString(),
-
-
             });
 
             _logger.LogInformation("Environment data updated for shelter {ShelterCode}.", shelter.ShelterCode);

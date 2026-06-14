@@ -23,13 +23,14 @@ namespace RSMS.Controllers
         {
             // Load shelters with latest reading only (optimized query)
             var shelters = await _context.Shelters.
-            Select(s => new {
-                                s.ShelterCode,
-                                s.ShelterName,
-                                LatestReading = s.SensorReadings
+            Select(s => new
+            {
+                s.ShelterCode,
+                s.ShelterName,
+                LatestReading = s.SensorReadings
                                     .OrderByDescending(r => r.TimeStamp)
                                     .FirstOrDefault()
-                            })
+            })
             .ToListAsync();
 
             var model = shelters.Select(s =>
@@ -44,7 +45,7 @@ namespace RSMS.Controllers
                     Humidity = latest?.Humidity ?? 0,
                     SmokeDetected = latest?.SmokeDetected ?? false,
                     IntrusionDetected = latest?.IntrusionDetected ?? false,
-                    TimeRecorded = latest?.TimeStamp ?? new DateTime(0000,00,00,00,00,00),
+                    TimeRecorded = latest?.TimeStamp ?? new DateTime(),
 
                     // added ShelterAccess to the model and set it to false if no reading is available
                     // ShelterAccess = latest?.ShelterAccess ?? false,

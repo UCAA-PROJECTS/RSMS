@@ -1,4 +1,9 @@
-﻿document.addEventListener("DOMContentLoaded", () => { 
+﻿//const { read } = require("@popperjs/core");
+
+//import the reusable table script
+import { addRowToTable, deleteAllRowsFromTable } from './readingsTable.js';
+
+document.addEventListener("DOMContentLoaded", () => { 
 
 	const temperatureChart = document.getElementById("tempChart");
 
@@ -73,25 +78,31 @@
 			const response = await fetch(url);
 			const data = await response.json();
 
-			//Clear existing Chart data
-			window.tempChart.data.labels = [];
-			window.tempChart.data.datasets[0].data = [];
+			if (data) { 
+				//Clear existing Chart data
+				window.tempChart.data.labels = [];
+				window.tempChart.data.datasets[0].data = [];
 
-			//Load new data
-			data.forEach(item => {
-				window.tempChart.data.labels.push(item.time);
-				window.tempChart.data.datasets[0].data.push(item.temperature);
-			});
+				//find table and clear all its contents
+				const historyTableBody = document.querySelector("#tempTable tbody");
+				deleteAllRowsFromTable(historyTableBody);
 
-			window.tempChart.update();
+				//Load new data into chart and table
+				data.forEach(item => {
+					window.tempChart.data.labels.push(item.time);
+					window.tempChart.data.datasets[0].data.push(item.temperature);
+
+					addRowToTable(historyTableBody, item);
+				});
+
+				window.tempChart.update();
+			} else {
+				console.log("No history data received.")
+			}
 		}
 		catch (err) {
 			console.error("Chart loading error, Confirm the if the url is the correct one. :",err);
 			}
-	}
-
-	function formatDate(date){
-		return date.toISOString().split('T')[0];
 	}
 
 	async function loadLastHours(hours){
@@ -146,7 +157,11 @@
 	window.returntoLive = function()
 	{
 		window.historicalMode = false;
-	window.tempChart.data.labels = [];
-	window.tempChart.data.datasets[0].data = [];
+		//clear chart and table
+		window.tempChart.data.labels = [];
+		window.tempChart.data.datasets[0].data = [];
+
+		const historyTableBody = document.querySelector("#tempTable tbody");
+		deleteAllRowsFromTable(historyTableBody);
 	}
 });
