@@ -143,6 +143,32 @@ def generate_stabilizer_payload(shelter_code):
         "timeStamp": utc_timestamp()
     })
 
+# ----------------------------
+# BATTERY SIMULATION
+# ----------------------------
+def generate_battery_payload(shelter_code):
+    voltage = round(random.uniform(48.0, 54.5), 1)
+    current = round(random.uniform(-10.0, 12.0), 2)
+    state_of_charge = round(random.uniform(35.0, 100.0), 0)
+    temperature = round(random.uniform(24.0, 42.0), 1)
+    backup_hours = round(random.uniform(1.0, 8.0), 1)
+
+    if random.random() < 0.05:
+        state_of_charge = round(random.uniform(5.0, 19.0), 0)
+
+    if random.random() < 0.04:
+        temperature = round(random.uniform(46.0, 55.0), 1)
+
+    return json.dumps({
+        "shelterCode": shelter_code,
+        "voltage": voltage,
+        "current": current,
+        "stateOfCharge": state_of_charge,
+        "temperature": temperature,
+        "backupHoursRemaining": backup_hours,
+        "timestamp": utc_timestamp()
+    })
+
 
 def publish_payload(topic, payload):
     if not connected.is_set():
@@ -202,7 +228,7 @@ print("------------------------------------------")
 
 
 # ----------------------------
-# MAIN LOOP
+# PUBLISH LOOP
 # ----------------------------
 
 while running:
@@ -210,13 +236,16 @@ while running:
 
         environment_topic = f"shelters/{shelter_code}/environment"
         stabilizer_topic = f"shelters/{shelter_code}/stabilizer"
+        battery_topic = f"shelters/{shelter_code}/battery"
 
         environment_payload = generate_environment_payload(shelter_code)
         stabilizer_payload = generate_stabilizer_payload(shelter_code)
+        battery_payload = generate_battery_payload(shelter_code)
 
         print(f"Shelter: {shelter_code}")
         publish_payload(environment_topic, environment_payload)
         publish_payload(stabilizer_topic, stabilizer_payload)
+        publish_payload(battery_topic, battery_payload)
         print("------------------------------------------")
 
     time.sleep(PUBLISH_INTERVAL_SECONDS)

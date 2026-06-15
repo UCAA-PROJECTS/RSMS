@@ -94,6 +94,13 @@ document.addEventListener("DOMContentLoaded", () => {
 			window.humChart.update();
 		}
 
+		/* -------------------------
+		Update Table
+	-------------------------- */
+		const historyTableBody = document.querySelector("#humTable tbody");
+		const dt = { time: data.timeStamp, temperature: data.humidity };
+		addRowToTable(historyTableBody, dt)
+
 	});
 
 

@@ -15,6 +15,8 @@ namespace RSMS.Data
 
         public DbSet<StabilizerReading> StabilizerReadings { get; set; }
 
+        public DbSet<BatteryReading> BatteryReadings { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -40,7 +42,16 @@ namespace RSMS.Data
                 .HasMaxLength(20)
                 .IsRequired();
             });
-                
+
+            builder.Entity<BatteryReading>(entity =>
+            {
+                entity.HasKey(b => b.Id);
+
+                entity.Property(b => b.ShelterCode)
+                .HasMaxLength(20)
+                .IsRequired();
+            });
+
         }
     }
     

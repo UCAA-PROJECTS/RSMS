@@ -23,9 +23,9 @@
 		<i class="fas fa-fire"></i> Smoke
 	</a>
 
-	<div class="menu-item">
+	<a class="menu-item @IsActive("Battery")" asp-controller="Battery" asp-action="Battery" asp-route-shelterCode="@ViewBag.ShelterCode">
 		<i class="fas fa-battery-full"></i> Battery
-	</div>
+	</a>
 
 	<a class="menu-item @IsActive("Stabilizer")" asp-controller="Stabilizer" asp-action="Stabilizer" asp-route-shelterCode="@ViewBag.ShelterCode">
 		<i class="fas fa-plug"></i> Stabilizer

@@ -64,10 +64,10 @@ namespace RSMS.Controllers
         public async Task<IActionResult> GetTemperatureSummary(string shelterCode)
         {
             string status;
-            //THIS IS 1 HOUR AGO, WHY NAME VARIABLE IS 6 HOURS?
-            var sixHoursAgo = DateTime.UtcNow.AddHours(-1);
+           
+            var oneHourAgo = DateTime.UtcNow.AddHours(-1);
 
-            var query = _context.Readings.Where(reading => reading.ShelterCode == shelterCode && reading.TimeStamp >= sixHoursAgo);
+            var query = _context.Readings.Where(reading => reading.ShelterCode == shelterCode && reading.TimeStamp >= oneHourAgo);
 
 
             var latestReading = await query.OrderByDescending(r => r.TimeStamp).FirstOrDefaultAsync();
@@ -83,9 +83,7 @@ namespace RSMS.Controllers
                 });
             }
 
-            //Time difference since last reading.
-            //WHY ARE WE USING LAST READING TO CHECK SENSOR AVAILABILITY. IF SENSOR WENT OFF IN THE LAST < 5 MINUTES, WE SHALL CONTINUE TO
-            //LOG SENSOR ONLINE, HOWEVER THERE WILL BE NO UPDATE ON THE LATEST SENSOR GRAPH.
+          
             var minutesSinceLastReading = (DateTime.UtcNow - latestReading.TimeStamp).TotalMinutes;
             
             if (minutesSinceLastReading < 5)
@@ -105,7 +103,7 @@ namespace RSMS.Controllers
 
             var hasData = await query.AnyAsync();
 
-            //A SENSOR CAN HAVE DATA AND BE OFFLINE.RIGHT??
+       
             if (!hasData)
             {
                 return Json(new TemperatureSummaryDTO { SensorStatus = "Offline" });

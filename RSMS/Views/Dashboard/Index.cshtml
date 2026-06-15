@@ -172,9 +172,9 @@
 
                     <!-- Battery -->
 
-                    <a asp-controller="ShelterHistory"
+                    <a asp-controller="Battery"
                     asp-action="Battery"
-                    asp-route-code="@shelter.ShelterCode"
+                       asp-route-shelterCode="@shelter.ShelterCode"
                     class="sensor-box sensor-button">
 
                         <div class="sensor-title">Battery</div>
@@ -187,9 +187,6 @@
 
                         <div class="dot gray-dot"
                             id="bat-dot-@shelter.ShelterCode"></div>
-
-                            @* default green dot *@
-                        <div class="dot green-dot"></div>
                     </a>
 
                     <!-- Stabilizer -->
@@ -239,6 +236,15 @@
         // -----------------------------
         const shelterCodes = ["ILS002", "DVOR003", "GP001"];
 
+        const overallStatusState = {};
+        for(const code of shelterCodes)
+        {
+            overallStatusState[code] = {
+                environment: "unknown",
+                stabilizer: "unknown",
+                battery: "unknown"
+            };
+        }
         async function joinShelterGroups() {
             for (const code of shelterCodes) {
                 await connection.invoke("JoinShelterGroup", code);
@@ -260,6 +266,11 @@ connection.on("ShelterUpdated", data => {
 
     const shelter = data.shelterCode;
     if (!shelter) return;
+
+    if (!overallStatusState[shelter]) {
+    console.warn("Unknown shelter:", shelter);
+    return;
+    }
 
     function updateValue(elementId, value) {
         const el = document.getElementById(elementId);
@@ -297,40 +308,40 @@ connection.on("ShelterUpdated", data => {
         }
     }
 
-   function updateBadge(badgeId, status) {
+   // function updateBadge(badgeId, status) {
 
-        const badge = document.getElementById(badgeId);
-        if (!badge) return;
+   //      const badge = document.getElementById(badgeId);
+   //      if (!badge) return;
 
-        const normalized = (status || "unknown").toLowerCase();
+   //      const normalized = (status || "unknown").toLowerCase();
 
-        badge.innerText = normalized.toUpperCase();
+   //      badge.innerText = normalized.toUpperCase();
 
-        badge.classList.remove(
-            "status-alert",
-            "status-warning",
-            "status-ok",
-            "status-unknown"
-        );
+   //      badge.classList.remove(
+   //          "status-alert",
+   //          "status-warning",
+   //          "status-ok",
+   //          "status-unknown"
+   //      );
 
-        switch (normalized) {
-            case "alert":
-                badge.classList.add("status-alert");
-                break;
+   //      switch (normalized) {
+   //          case "alert":
+   //              badge.classList.add("status-alert");
+   //              break;
 
-            case "warning":
-                badge.classList.add("status-warning");
-                break;
+   //          case "warning":
+   //              badge.classList.add("status-warning");
+   //              break;
 
-            case "ok":
-                badge.classList.add("status-ok");
-                break;
+   //          case "ok":
+   //              badge.classList.add("status-ok");
+   //              break;
 
-            default:
-                badge.classList.add("status-unknown");
-                break;
-        }
-    }
+   //          default:
+   //              badge.classList.add("status-unknown");
+   //              break;
+   //      }
+   //  }
 
     // -----------------------------
     // Update numeric values
@@ -349,14 +360,23 @@ connection.on("ShelterUpdated", data => {
     // -----------------------------
     // Overall badge
     // -----------------------------
-    updateBadge(`status-banner-${shelter}`, data.overallStatus);
+   overallStatusState[shelter].environment = data.overallStatus;
+   updateOverallDashboardBadge(shelter);
 });
 
+         // -----------------------------
+            //Stabilizer Sensor
+            // -----------------------------
 
         connection.on("StabilizerUpdated", data => {
             console.log("Stabilizer update:", data);
             const shelter = data.shelterCode;
             if(!shelter) return;
+
+            if (!overallStatusState[shelter]) {
+            console.warn("Unknown shelter:", shelter);
+            return;
+            }
 
             const stabilizerValue = document.getElementById(`stabilizer-${shelter}`);
             const stabilizerDot = document.getElementById(`stab-dot-${shelter}`);
@@ -395,55 +415,169 @@ connection.on("ShelterUpdated", data => {
                     break;
                 }
             }
-            updateOverallDashboardBadge(shelter, data.status);
+            overallStatusState[shelter].stabilizer = data.status;
+            updateOverallDashboardBadge(shelter);
         });
 
-                function updateOverallDashboardBadge(shelterCode, stabilizerStatus){
+                function updateOverallDashboardBadge(shelterCode){
                     const badge = document.getElementById(`status-banner-${shelterCode}`);
-                    if(!badge) return;
 
-                    const status = (stabilizerStatus || "").toLowerCase();
+                            const state = overallStatusState[shelterCode];
+
+                    if(!badge || !state) return;
+
+                    const statuses = [
+                        normalizeOverallStatus(state.environment),
+                        normalizeOverallStatus(state.stabilizer),
+                        normalizeOverallStatus(state.battery)
+                    ];
+                    let overallStatus;
+
+                    if(statuses.includes("alert")){
+                        overallStatus = "alert";
+                    }
+                    else if(statuses.includes("warning"))
+                    {
+                        overallStatus = "warning";
+                    }
+                    else if(statuses.every(status => status === "ok"))
+                    {
+                        overallStatus = "ok";
+                    }
+
+                    else{
+                        overallStatus = "unknown";
+                    }
 
                     badge.classList.remove(
-                    "status-alert",
-                    "status-warning",
-                    "status-ok",
-                    "status-unknown"
+                        "status-alert",
+                        "status-warning",
+                        "status-ok",
+                        "status-unknown"
                     );
 
-                    if(status === "critical" || status === "alert")
-                    {
+                    switch(overallStatus){
+
+                        case "alert":
                         badge.innerText = "ALERT";
                         badge.classList.add("status-alert");
-                    }
+                        break;
 
-                    else if(status === "warning")
-                    {
+                        case "warning":
                         badge.innerText = "WARNING";
                         badge.classList.add("status-warning");
+                        break;
 
-                    }
-
-                    else if(status === "normal" || status === "ok")
-                    {
+                        case "ok":
                         badge.innerText = "OK";
                         badge.classList.add("status-ok");
-                    }
-                    else{
+                        break;
+
+                        default:
                         badge.innerText = "UNKNOWN";
                         badge.classList.add("status-unknown");
+                        break;
                     }
+
                 }
 
+
+
             // -----------------------------
-            // Start connection
+            //Battery Sensor
             // -----------------------------
-            connection.start()
-                .then(async () => {
-                    console.log("SignalR connected");
-                    await joinShelterGroups();
-                })
-                .catch(err => console.error("SignalR error:", err));
+
+                    connection.on("BatteryUpdated", data => {
+                    console.log("Battery update:", data);
+                    const shelter = data.shelterCode;
+                    if(!shelter) return;
+
+                    if (!overallStatusState[shelter]) {
+                    console.warn("Unknown shelter:", shelter);
+                    return;
+        }
+
+                    const batteryValue = document.getElementById(`battery-${shelter}`);
+                    const batteryDot = document.getElementById(`bat-dot-${shelter}`);
+
+                   if (batteryValue) {
+                    if (data.stateOfCharge !== undefined && data.stateOfCharge !== null) {
+                        batteryValue.innerText = `${Number(data.stateOfCharge).toFixed(0)}%`;
+                    } 
+                    else {
+                        batteryValue.innerText = data.status ?? "--";
+                    }
+                    }
+
+                    if(batteryDot){
+                        batteryDot.classList.remove(
+                            "red-dot",
+                            "yellow-dot",
+                            "green-dot",
+                            "gray-dot"
+                        );
+
+                        const status = (data.status || "").toLowerCase();
+                        switch(status)
+                        {
+                            case "critical":
+                            case "alert":
+                            batteryDot.classList.add("red-dot");
+                            break;
+
+                            case "warning":
+                            batteryDot.classList.add("yellow-dot");
+                            break;
+
+                            case "healthy":
+                            case "charging":
+                            case "normal":
+                            case "ok":
+                            batteryDot.classList.add("green-dot");
+                            break;
+
+                            default:
+                            batteryDot.classList.add("gray-dot");
+                            break;
+                        }
+                    }
+                   overallStatusState[shelter].battery = data.status;
+                   updateOverallDashboardBadge(shelter);
+                });
+
+
+        // -----------------------------
+        //Overall Status Evaluation
+        // -----------------------------
+        function normalizeOverallStatus(status){
+            switch((status || "").toLowerCase())
+            {
+                case "critical":
+                case "alert":
+                return "alert";
+
+                case "warning":
+                case "discharging":
+                return "warning";
+
+                case "ok":
+                case "normal":
+                case "healthy":
+                case "charging":
+                return "ok";
+
+                default:
+                return "unknown";
+            }
+        }
+
+
+        connection.start()
+            .then(async () => {
+                console.log("SignalR connected");
+                await joinShelterGroups();
+            })
+            .catch(err => console.error("SignalR error:", err));
 
     </script>
 }

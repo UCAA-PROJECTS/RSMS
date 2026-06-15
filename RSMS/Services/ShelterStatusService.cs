@@ -46,7 +46,7 @@ namespace RSMS.Services
             if(result.TemperatureStatus == ShelterStatus.Alert ||
                 result.HumidityStatus == ShelterStatus.Alert ||
                 result.smokeStatus == ShelterStatus.Alert ||
-                result.intrudeStatus == ShelterStatus.Alert)
+                result.intrudeStatus == ShelterStatus.Alert )
             {
                 return ShelterStatus.Alert;
             }

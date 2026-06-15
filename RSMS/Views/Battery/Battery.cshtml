@@ -1,0 +1,197 @@
+﻿@using RSMS.Models
+@using RSMS.Services
+
+@{
+    ViewData["Title"] = "Battery Sensor";
+
+    var latest = ViewBag.Latest as BatteryReading;
+    var logs = ViewBag.Logs as List<BatteryReading>;
+    var shelterCode = ViewBag.ShelterCode as string;
+}
+
+
+
+<div class="app-container">
+    <partial name="_SideMenu" />
+    <div class="main-content">
+        <div class="stabilizer-container">
+
+            <div class="page-header">
+                <h2>
+                    <i class="fas fa-battery-full"></i>
+                    Shelter Backup Power Monitoring
+                </h2>
+            </div>
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fas fa-bolt"></i>
+                        Battery Voltage
+                    </div>
+                    <div class="stat-value" id="batteryVoltage">
+                        @(latest?.Voltage.ToString("0.0") ?? "--") V
+                    </div>
+                    <span class="stat-trend">Battery terminal voltage</span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fas fa-charging-station"></i>
+                        Battery Current
+                    </div>
+                    <div class="stat-value" id="batteryCurrent">
+                        @(latest?.Current.ToString("0.00") ?? "--") A
+                    </div>
+                    <span class="stat-trend">Positive = charging, negative = discharging</span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fas fa-percent"></i>
+                        State of Charge
+                    </div>
+                    <div class="stat-value" id="stateOfCharge">
+                        @(latest?.StateOfCharge.ToString("0") ?? "--")%
+                    </div>
+                    <span class="stat-trend">Estimated remaining capacity</span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fas fa-circle-check"></i>
+                        Battery Status
+                    </div>
+                    <div class="stat-value status-text" id="statusText">
+                        @(latest?.Status ?? "Healthy")
+                    </div>
+
+                    <span id="statusBadge"
+                          class="status-pill @(latest == null ? "status-normal" : BatteryStatusEvaluator.CssClass(latest.Status))">
+                        @(latest?.Status ?? "Healthy")
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="main-dashboard-grid">
+
+                <div class="card-modern">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-chart-line"></i>
+                            Battery Trend
+                        </h3>
+
+                        <div class="chart-actions">
+                            <button type="button" id="liveChartBtn" class="see-link active-chart-btn">
+                                Live readings
+                            </button>
+
+                            <button type="button" id="last24HoursBtn" class="see-link">
+                                Last 24 hours
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="chart-wrapper">
+                        <canvas id="batteryChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card-modern battery-details-card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-gauge-high"></i>
+                            Battery Details
+                        </h3>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Backup Time Remaining</span>
+                        <span class="info-value" id="backupTime">
+                            @(latest?.BackupHoursRemaining.ToString("0.0") ?? "--") hrs
+                        </span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Battery Temperature</span>
+                        <span class="info-value" id="batteryTemperature">
+                            @(latest?.Temperature.ToString("0.0") ?? "--") °C
+                        </span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Last Updated</span>
+                        <span class="info-value" id="lastUpdated">
+                            @(latest?.TimeStamp.ToLocalTime().ToString("g") ?? "--")
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="bottom-section">
+                <div class="section-title">
+                    <i class="fas fa-list"></i>
+                    Recent Battery Logs
+
+                    <a asp-controller="Battery"
+                       asp-action="Download"
+                       asp-route-shelterCode="@shelterCode"
+                       class="download-btn">
+                        Download History
+                    </a>
+                </div>
+
+                <table class="logs-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Voltage</th>
+                            <th>Current</th>
+                            <th>SOC</th>
+                            <th>Temp</th>
+                            <th>Backup</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="logsTableBody">
+                        @if (logs != null)
+                        {
+                            foreach (var item in logs)
+                            {
+                                <tr>
+                                    <td>@item.TimeStamp.ToLocalTime().ToString("MMM d, hh:mm tt")</td>
+                                    <td>@item.Voltage.ToString("0.0") V</td>
+                                    <td>@item.Current.ToString("0.00") A</td>
+                                    <td>@item.StateOfCharge.ToString("0")%</td>
+                                    <td>@item.Temperature.ToString("0.0") °C</td>
+                                    <td>@item.BackupHoursRemaining.ToString("0.0") hrs</td>
+                                    <td>
+                                        <span class="status-pill @BatteryStatusEvaluator.CssClass(item.Status)">
+                                            @item.Status
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/battery.css" asp-append-version="true" />
+    <script>
+        window.shelterCode = "@shelterCode";
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/lib/microsoft-signalr/signalr.js"></script>
+    <script src="~/js/battery.js" asp-append-version="true"></script>
+}

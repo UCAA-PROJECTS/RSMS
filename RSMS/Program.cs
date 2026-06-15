@@ -20,6 +20,7 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IShelterService, ShelterStatusService>();
 builder.Services.AddScoped<IStabilizerService, StabilizerService>();
+builder.Services.AddScoped<IBatteryService, BatteryService>();
 builder.Services.AddHostedService<MqttSubscriber>();
 builder.Services.AddSignalR();
 

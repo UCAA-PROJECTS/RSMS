@@ -160,6 +160,10 @@ namespace RSMS.Services
                             await HandleStabilizerMessageAsync(payload, shelter, context);
                             break;
 
+                        case "battery":
+                            await HandleBatteryMessageAsync(payload, shelter, context);
+                            break;
+
                         default:
                             _logger.LogWarning("Unknown sensor type: {SensorType}", sensorType);
                             break;
@@ -297,7 +301,63 @@ namespace RSMS.Services
 
         return "Normal";
         }
-        
+
+        private async Task HandleBatteryMessageAsync(string payload, Shelter shelter, ApplicationDbContext context)
+        {
+            var dto = JsonSerializer.Deserialize<BatteryReadingDTO>(payload,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (dto == null)
+                return;
+
+            if (dto.ShelterCode != shelter.ShelterCode)
+            {
+                _logger.LogWarning("Payload shelter code mismatch. Topic={TopicShelter}, Payload={PayloadShelter}", shelter.ShelterCode, dto.ShelterCode);
+                return;
+            }
+
+            var status = EvaluateBatteryStatus(dto.Voltage, dto.StateOfCharge, dto.Temperature,dto.BackupHoursRemaining);
+            var reading = new BatteryReading
+            {
+                ShelterCode = shelter.ShelterCode,
+                Voltage = dto.Voltage,
+                Temperature = dto.Temperature,
+                Current = dto.Current,
+                BackupHoursRemaining = dto.BackupHoursRemaining,
+                StateOfCharge = dto.StateOfCharge,
+                Status = status,
+                TimeStamp = dto.TimeStamp,
+            };
+
+            context.BatteryReadings.Add(reading);
+            await context.SaveChangesAsync();
+
+            await _hub.Clients.Group(shelter.ShelterCode).SendAsync("BatteryUpdated", new
+            {
+                shelter.ShelterCode,
+                shelter.ShelterName,
+                reading.Voltage,
+                reading.Temperature,
+                reading.Current,
+                reading.StateOfCharge,
+                reading.BackupHoursRemaining,
+                reading.Status,
+                statusClass = BatteryStatusEvaluator.CssClass(reading.Status),
+                reading.TimeStamp
+            });
+
+            _logger.LogInformation("Battery data updated for shelter {ShelterCode}.", shelter.ShelterCode);
+        }
+        private static string EvaluateBatteryStatus(double voltage, double stateofCharge, double temperature, double backupHoursRemaining)
+        {
+            if (voltage < 48 || stateofCharge < 20 || temperature > 45 || backupHoursRemaining < 1)
+                return "Critical";
+
+            if (voltage < 50 || stateofCharge < 40 || temperature > 35 || backupHoursRemaining < 2)
+                return "Warning";
+
+            return "Healthy";
+        }
 
 
 
