@@ -1,4 +1,4 @@
-﻿
+﻿import { addRowToTable, deleteAllRowsFromTable } from './readingsTableHumidity.js';
 document.addEventListener("DOMContentLoaded", () => {
 	const shelterCode = String(
 		window.shelterCode
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		Update Table
 	-------------------------- */
 		const historyTableBody = document.querySelector("#humTable tbody");
-		const dt = { time: data.timeStamp, temperature: data.humidity };
+		const dt = { time: data.timeStamp, humidity: data.humidity };
 		addRowToTable(historyTableBody, dt)
 
 	});

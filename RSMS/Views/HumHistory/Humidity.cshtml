@@ -3,22 +3,6 @@
 	var latest = (Model as IEnumerable<HumidityView>)?.FirstOrDefault();
 }
 
-@section Scripts {
-	<link rel="stylesheet" asp-append-version="true" href="~/css/TemperaturePage.css" />
-    <link rel="stylesheet" href="~/css/humChart.css" />
-	<script>
-		window.shelterCode ="@ViewBag.ShelterCode";
-	</script>
-
-	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-	<script src="/js/humChart.js"></script>
-
-	<script src="/lib/microsoft-signalr/signalr.js"></script>
-	<script src="/js/humSignalR.js"></script>
-	<script src="/js/humSummary.js"></script>
-
-}
 <div class="app-container">
 	<partial name="_SideMenu" />
 	<!--Main Area-->
@@ -81,7 +65,7 @@
 			</div>
 		</div>
 
-		<!--Temperature Summary-->
+		<!--	Humidity Summary-->
 		<div class="summary-section">
 
 			<div class="summary-card">
@@ -153,4 +137,20 @@
 
 </div>
 
+@section Scripts {
+	<link rel="stylesheet" asp-append-version="true" href="~/css/TemperaturePage.css" />
+	<link rel="stylesheet" href="~/css/humChart.css" />
+	<script>
+		window.shelterCode ="@ViewBag.ShelterCode";
+	</script>
 
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+	<script src="/js/humChart.js"></script>
+
+	<script src="/lib/microsoft-signalr/signalr.js"></script>
+	<script type="module" src="/js/humSignalR.js"></script>
+	<script type="module" src="/js/humSummary.js"></script>
+	<script src="/js/readingsTableHumidity.js"></script>
+
+}

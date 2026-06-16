@@ -1,4 +1,6 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+﻿
+import { addRowToTable, deleteAllRowsFromTable } from './readingsTableHumidity.js';
+document.addEventListener("DOMContentLoaded", () => {
 
 	const ctx = document.getElementById("humChart");
 
@@ -97,7 +99,7 @@
 	async function loadChartData(startDate = "", endDate = "") {
 		//If user selected dates, switch to historical mode
 		window.historicalMode =
-			startDate !== "" || endDate !== "";
+			startDate !== "" && endDate !== "";
 		try {
 			const url = `/HumHistory/GetHumidityHistory` +
 				`?shelterCode=${window.shelterCode}` +
@@ -112,11 +114,16 @@
 			window.humChart.data.labels = [];
 			window.humChart.data.datasets[0].data = [];
 
-			//Load new data
+			//find table and clear all its contents
+			const historyTableBody = document.querySelector("#humTable tbody");
+			deleteAllRowsFromTable(historyTableBody);
 
+			//Load new data into chart and table
 			data.forEach(item => {
 				window.humChart.data.labels.push(item.time);
 				window.humChart.data.datasets[0].data.push(item.humidity);
+
+				addRowToTable(historyTableBody, item);
 			});
 			window.humChart.update();
 		}
@@ -129,9 +136,9 @@
 		}
 	}
 
-	function formatDate(date) {
-		return date.toISOString().split('T')[0];
-	}
+	//function formatDate(date) {
+	//	return date.toISOString().split('T')[0];
+	//}
 
 	async function loadLastHours(hours) {
 		window.historicalMode = true;
@@ -186,6 +193,8 @@
 		window.historicalMode = false;
 		window.humChart.data.labels = [];
 		window.humChart.data.datasets[0].data = [];
+		const historyTableBody = document.querySelector("#humTable tbody");
+		deleteAllRowsFromTable(historyTableBody);
   
 	}
 });

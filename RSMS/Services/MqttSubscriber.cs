@@ -30,7 +30,7 @@ namespace RSMS.Services
         private MqttClientOptions _mqttClientConnectOptions;
         private MqttTopicFilter _mqttClientSubscriptionOptions;
         private MqttClientDisconnectOptions _mqttClientDisconnectOptions;
-        private string MqttServerAddress => "localhost"; //"172.29.100.10"; //this will be changed to the actual mqtt server 
+        private string MqttServerAddress => "localhost"; //this will be changed to the actual mqtt server 
         private int MqttServerPort => 1883;
 
         public MqttSubscriber(IServiceScopeFactory scopeFactory, IHubContext<ShelterHub> hub, ILogger<MqttSubscriber> logger)
