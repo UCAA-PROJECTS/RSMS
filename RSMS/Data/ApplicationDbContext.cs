@@ -31,7 +31,7 @@ namespace RSMS.Data
 
             builder.Entity<Shelter>().HasData(
                 new Shelter { ShelterCode = "GP001", ShelterName = "GP Shelter" },
-                new Shelter { ShelterCode = "ILS002", ShelterName = "ILS Shelter" },
+                new Shelter { ShelterCode = "LLZ002", ShelterName = "LLZ Shelter" },
                 new Shelter { ShelterCode = "DVOR003", ShelterName = "DVOR Shelter" });
 
             builder.Entity<StabilizerReading>(entity =>

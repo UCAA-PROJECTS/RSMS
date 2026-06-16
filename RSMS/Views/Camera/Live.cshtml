@@ -36,7 +36,7 @@
        
             <div class="sensor-item">
             <span><i class="fas fa-thermometer-half"></i> Temperature:</span>
-            <span class="value" id="currentTemp">-- °C</span> 
+            <span class="value" id="currentTemp">-- °C</span>
             <span id="tempStatus" class="status-pill status-unknown"></span>
             </div>
 
@@ -45,10 +45,22 @@
             <span class="value" id="currentHum">-- %</span>
             <span id="humStatus" class="status-pill status-unknown"></span>
             </div>
-        <div class="sensor-item">
-            <span> <i class="fas fa-fire"></i> Smoke</span>
-            <span id="humidityValue">-- %</span>
-        </div>
+
+            <div class="sensor-item">
+            <span><i class="fas fa-battery-full"></i> Battery:</span>
+            <span class="value" id="batteryValue">-- %</span>
+            <span id="batteryStatus" class="status-pill status-unknown"></span>
+            </div>
+
+            <div class="sensor-item">
+            <span> <i class="fas fa-fire"></i> Smoke:</span>
+            <span id="smokeStatus" class="status-pill status-unknown"></span>
+            </div>
+
+            <div class="sensor-item">
+            <span><i class="fas fa-plug"></i> Stabilizer:</span>
+            <span id="stabilizerStatus" class="status-pill status-unknown"></span>
+            </div>
 
     </div>
 
@@ -60,6 +72,8 @@
         window.shelterCode ="@ViewBag.ShelterCode";
     </script>
     <script src="/lib/microsoft-signalr/signalr.js"></script>
-    <script src="/js/tempSignalR.js"></script>
-    <script src="/js/humSignalR.js"></script>
+    <script type="module" src="/js/tempSignalR.js"></script>
+    <script type="module" src="/js/humSignalR.js"></script>
+    <script src="~/js/SmokeSignalR.js"></script>
+   <script src="~/js/battery&stabilizer-camerapage.js"></script>
 }
