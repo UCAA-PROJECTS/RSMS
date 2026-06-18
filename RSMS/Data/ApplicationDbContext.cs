@@ -17,6 +17,8 @@ namespace RSMS.Data
 
         public DbSet<BatteryReading> BatteryReadings { get; set; }
 
+        public DbSet<GatewayReading> GatewayReadings { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -48,6 +50,15 @@ namespace RSMS.Data
                 entity.HasKey(b => b.Id);
 
                 entity.Property(b => b.ShelterCode)
+                .HasMaxLength(20)
+                .IsRequired();
+            });
+
+            builder.Entity<GatewayReading>(entity =>
+            {
+                entity.HasKey(g => g.Id);
+
+                entity.Property(g => g.ShelterCode)
                 .HasMaxLength(20)
                 .IsRequired();
             });

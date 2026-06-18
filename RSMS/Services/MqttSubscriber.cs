@@ -164,6 +164,10 @@ namespace RSMS.Services
                             await HandleBatteryMessageAsync(payload, shelter, context);
                             break;
 
+                        case "gateway":
+                            await HandleGatewayMessageAsync(payload, shelter, context);
+                            break;
+
                         default:
                             _logger.LogWarning("Unknown sensor type: {SensorType}", sensorType);
                             break;
@@ -357,6 +361,132 @@ namespace RSMS.Services
                 return "Warning";
 
             return "Healthy";
+        }
+
+        private async Task HandleGatewayMessageAsync(string payload, Shelter shelter, ApplicationDbContext context)
+        {
+            var dto = JsonSerializer.Deserialize<GatewayReadingDTO>(payload,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (dto == null)
+                return;
+
+            if (dto.ShelterCode != shelter.ShelterCode)
+            {
+                _logger.LogWarning("Payload shelter code mismatch. Topic={TopicShelter}, Payload={PayloadShelter}", shelter.ShelterCode, dto.ShelterCode);
+                return;
+            }
+
+            // Server-side derived values
+            var memoryUsedPercent = dto.MemoryTotalMb > 0 ? dto.MemoryUsedMb / dto.MemoryTotalMb * 100.0 : 0;
+            var diskUsedPercent = dto.DiskTotalGb > 0 ? dto.DiskUsedGb / dto.DiskTotalGb * 100.0 : 0;
+            var packetDenom = dto.PacketsReceived + dto.PacketsLost;
+            var packetLossPercent = packetDenom > 0 ? (double)dto.PacketsLost / packetDenom * 100.0 : 0;
+            var latencyMs = (DateTime.UtcNow - dto.TimeStamp).TotalMilliseconds;
+            if (latencyMs < 0) latencyMs = 0;
+
+            var cpuStatus = GatewayStatusEvaluator.Cpu(dto.CpuLoad, dto.CpuTemperature, dto.UnderVoltage, dto.Throttled);
+            var memoryStatus = GatewayStatusEvaluator.Memory(memoryUsedPercent);
+            var diskStatus = GatewayStatusEvaluator.Disk(diskUsedPercent, dto.InodesUsedPercent);
+            var networkStatus = GatewayStatusEvaluator.Network(dto.NetworkUp, packetLossPercent);
+            var mqttStatus = GatewayStatusEvaluator.Mqtt(dto.PublisherServiceActive, dto.ClockSynced, latencyMs);
+            var status = GatewayStatusEvaluator.Worst(cpuStatus, memoryStatus, diskStatus, networkStatus, mqttStatus);
+
+            var reading = new GatewayReading
+            {
+                ShelterCode = shelter.ShelterCode,
+                Hostname = dto.Hostname,
+                PiModel = dto.PiModel,
+                IpAddress = dto.IpAddress,
+                OsVersion = dto.OsVersion,
+                KernelVersion = dto.KernelVersion,
+                CpuCores = dto.CpuCores,
+                CpuLoad = dto.CpuLoad,
+                CpuTemperature = dto.CpuTemperature,
+                ClockFrequencyMhz = dto.ClockFrequencyMhz,
+                UnderVoltage = dto.UnderVoltage,
+                Throttled = dto.Throttled,
+                UptimeSeconds = dto.UptimeSeconds,
+                Load1 = dto.Load1,
+                Load5 = dto.Load5,
+                Load15 = dto.Load15,
+                MemoryTotalMb = dto.MemoryTotalMb,
+                MemoryUsedMb = dto.MemoryUsedMb,
+                MemoryAvailableMb = dto.MemoryAvailableMb,
+                SwapUsedMb = dto.SwapUsedMb,
+                MemoryUsedPercent = memoryUsedPercent,
+                DiskTotalGb = dto.DiskTotalGb,
+                DiskUsedGb = dto.DiskUsedGb,
+                DiskFreeGb = dto.DiskFreeGb,
+                DiskUsedPercent = diskUsedPercent,
+                InodesUsedPercent = dto.InodesUsedPercent,
+                NetThroughputKbps = dto.NetThroughputKbps,
+                PacketsSent = dto.PacketsSent,
+                PacketsReceived = dto.PacketsReceived,
+                PacketsLost = dto.PacketsLost,
+                PacketLossPercent = packetLossPercent,
+                NetworkUp = dto.NetworkUp,
+                PublisherServiceActive = dto.PublisherServiceActive,
+                ClockSynced = dto.ClockSynced,
+                FailedPublishCount = dto.FailedPublishCount,
+                PublishLatencyMs = latencyMs,
+                Status = status,
+                TimeStamp = dto.TimeStamp,
+            };
+
+            context.GatewayReadings.Add(reading);
+            await context.SaveChangesAsync();
+
+            await _hub.Clients.Group(shelter.ShelterCode).SendAsync("GatewayUpdated", new
+            {
+                shelter.ShelterCode,
+                shelter.ShelterName,
+                reading.Hostname,
+                reading.PiModel,
+                reading.IpAddress,
+                reading.OsVersion,
+                reading.KernelVersion,
+                reading.CpuCores,
+                reading.CpuLoad,
+                reading.CpuTemperature,
+                reading.ClockFrequencyMhz,
+                reading.UnderVoltage,
+                reading.Throttled,
+                reading.UptimeSeconds,
+                reading.Load1,
+                reading.Load5,
+                reading.Load15,
+                reading.MemoryTotalMb,
+                reading.MemoryUsedMb,
+                reading.MemoryAvailableMb,
+                reading.SwapUsedMb,
+                reading.MemoryUsedPercent,
+                reading.DiskTotalGb,
+                reading.DiskUsedGb,
+                reading.DiskFreeGb,
+                reading.DiskUsedPercent,
+                reading.InodesUsedPercent,
+                reading.NetThroughputKbps,
+                reading.PacketsSent,
+                reading.PacketsReceived,
+                reading.PacketsLost,
+                reading.PacketLossPercent,
+                reading.NetworkUp,
+                reading.PublisherServiceActive,
+                reading.ClockSynced,
+                reading.FailedPublishCount,
+                reading.PublishLatencyMs,
+                reading.Status,
+                cpuStatus,
+                memoryStatus,
+                diskStatus,
+                networkStatus,
+                mqttStatus,
+                statusClass = GatewayStatusEvaluator.CssClass(reading.Status),
+                reading.TimeStamp
+            });
+
+            _logger.LogInformation("Gateway/infra data updated for shelter {ShelterCode}.", shelter.ShelterCode);
         }
 
 

@@ -1,0 +1,207 @@
+@model InfraOverview
+@{
+    ViewData["Title"] = "System Health";
+
+    string IsoUtc(DateTime? t)
+    {
+        if (t == null) return "";
+        var v = t.Value;
+        var utc = v.Kind == DateTimeKind.Local ? v.ToUniversalTime() : DateTime.SpecifyKind(v, DateTimeKind.Utc);
+        return utc.ToString("o");
+    }
+}
+
+<div class="ucaa-header">
+    <div class="ucaa-left"><img src="~/images/ucaa.png" alt="UCAA Logo" class="ucaa-logo" /></div>
+    <div class="ucaa-center"><h1 class="system-title">SYSTEM HEALTH</h1></div>
+    <div class="ucaa-right"><a asp-controller="Dashboard" asp-action="Index" class="sh-back"><i class="fas fa-arrow-left"></i> Dashboard</a></div>
+</div>
+
+<div class="sh-tabs">
+    <a class="sh-tab active" asp-controller="SystemHealth" asp-action="Index"><i class="fas fa-gauge-high"></i> Live Overview</a>
+    <a class="sh-tab" asp-controller="SystemHealth" asp-action="History"><i class="fas fa-chart-line"></i> Health History</a>
+    <a class="sh-tab" asp-controller="SystemHealth" asp-action="Sensors"><i class="fas fa-microchip"></i> Sensor Health</a>
+</div>
+
+<div class="sh-page">
+
+    @if (!Model.DataStoreReachable)
+    {
+        <div class="sh-banner sh-banner--error"><i class="fas fa-triangle-exclamation"></i><span>@Model.ErrorMessage</span></div>
+    }
+
+    <!-- system summary -->
+    <section class="sh-hero">
+        <div class="sh-hero__status">
+            <div class="sh-live"><span class="sh-live__dot"></span> LIVE</div>
+            <div class="sh-hero__label">
+                Overall System Status
+                <span class="sh-info" tabindex="0" role="button" aria-label="How overall status is determined">
+                    <i class="fas fa-circle-info"></i>
+                    <span class="sh-info__bubble">
+                        <strong>Overall = worst of every node + the database &amp; broker</strong>
+                        <span class="sh-dotline"><span class="dot red-dot"></span> <b>ALERT</b> — a node component is critical, or DB/broker is down</span>
+                        <span class="sh-dotline"><span class="dot yellow-dot"></span> <b>WARNING</b> — elevated load/temp/latency, or a node went offline</span>
+                        <span class="sh-dotline"><span class="dot green-dot"></span> <b>OK</b> — all nodes and services healthy</span>
+                        <span class="sh-info__more">See “How statuses are determined” below for exact thresholds.</span>
+                    </span>
+                </span>
+            </div>
+            <div class="sh-hero__state sh-badge @HealthUi.Mod(Model.SystemState)" id="sh-system">@HealthUi.Label(Model.SystemState)</div>
+            <div class="sh-hero__time">Updated <span id="sh-updated">@Model.GeneratedAtUtc.ToLocalTime().ToString("MMM d, yyyy · HH:mm:ss")</span></div>
+            <a class="sh-hero__cta" asp-controller="SystemHealth" asp-action="History"><i class="fas fa-chart-line"></i> Compare health over time <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+        <div class="sh-stats">
+            <div class="sh-stat"><div class="sh-stat__num">@Model.Total</div><div class="sh-stat__lbl"><i class="fas fa-server"></i> Pi nodes</div></div>
+            <div class="sh-stat sh-stat--ok"><div class="sh-stat__num" id="sh-ok">@Model.OkCount</div><div class="sh-stat__lbl">Healthy</div></div>
+            <div class="sh-stat sh-stat--warning"><div class="sh-stat__num" id="sh-warn">@Model.WarningCount</div><div class="sh-stat__lbl">Warning</div></div>
+            <div class="sh-stat sh-stat--alert"><div class="sh-stat__num" id="sh-alert">@Model.AlertCount</div><div class="sh-stat__lbl">Alert</div></div>
+            <div class="sh-stat sh-stat--online"><div class="sh-stat__num"><span id="sh-online">@Model.OnlineCount</span><span class="sh-stat__sep">/</span>@Model.Total</div><div class="sh-stat__lbl"><i class="fas fa-wifi"></i> Online</div></div>
+        </div>
+    </section>
+
+    <!-- core services -->
+    <section class="sh-svc-row">
+        @foreach (var svc in new[] { Model.Database, Model.Broker })
+        {
+            <div class="sh-svc sh-svc--@HealthUi.Mod(svc.State)" id="sh-svc-@svc.Key">
+                <div class="sh-svc__icon"><i class="fas @svc.Icon"></i></div>
+                <div class="sh-svc__body">
+                    <div class="sh-svc__name">@svc.Name</div>
+                    <div class="sh-svc__summary" id="sh-svc-@(svc.Key)-summary">@svc.Summary</div>
+                    <div class="sh-svc__details">
+                        @foreach (var d in svc.Details)
+                        {
+                            <span class="sh-svc__chip">@d.Label: <b>@d.Value</b></span>
+                        }
+                    </div>
+                </div>
+                <span class="sh-badge @HealthUi.Mod(svc.State)" id="sh-svc-@(svc.Key)-badge">@HealthUi.Label(svc.State)</span>
+            </div>
+        }
+    </section>
+
+    @{
+        var attention = Model.Nodes
+            .SelectMany(n => n.Components().Select(c => new { n.ShelterName, c }))
+            .Where(x => x.c.State == HealthState.Alert || x.c.State == HealthState.Warning)
+            .OrderByDescending(x => x.c.State == HealthState.Alert).ToList();
+        var offline = Model.Nodes.Where(n => n.Connectivity == ConnectivityState.Offline && n.LastSeenUtc != null).ToList();
+        var attnMod = Model.SystemState == HealthState.Alert ? "sh-attention--alert"
+                    : Model.SystemState == HealthState.Warning ? "sh-attention--warning" : "sh-attention--ok";
+    }
+    <section class="sh-attention @attnMod">
+        <div class="sh-attention__title"><i class="fas fa-bell"></i> Attention required</div>
+        @if (attention.Count == 0 && offline.Count == 0 && Model.Database.State <= HealthState.Ok && Model.Broker.State <= HealthState.Ok)
+        {
+            <div class="sh-attention__ok"><i class="fas fa-circle-check"></i> All nodes and services nominal.</div>
+        }
+        else
+        {
+            <div class="sh-attention__list">
+                @if (Model.Database.State == HealthState.Alert || Model.Database.State == HealthState.Warning)
+                {
+                    <span class="sh-attention__item"><span class="dot @HealthUi.Dot(Model.Database.State)"></span> Database — @Model.Database.Summary</span>
+                }
+                @if (Model.Broker.State == HealthState.Alert || Model.Broker.State == HealthState.Warning)
+                {
+                    <span class="sh-attention__item"><span class="dot @HealthUi.Dot(Model.Broker.State)"></span> MQTT Broker — @Model.Broker.Summary</span>
+                }
+                @foreach (var a in attention)
+                {
+                    <span class="sh-attention__item"><span class="dot @HealthUi.Dot(a.c.State)"></span> @a.ShelterName · @a.c.Name — @HealthUi.Label(a.c.State)</span>
+                }
+                @foreach (var o in offline)
+                {
+                    <span class="sh-attention__item"><span class="dot gray-dot"></span> @o.ShelterName · Pi offline (no telemetry)</span>
+                }
+            </div>
+        }
+    </section>
+
+    <details class="sh-guide">
+        <summary><i class="fas fa-circle-question"></i> How statuses are determined</summary>
+        <div class="sh-guide__grid">
+            <div class="sh-guide__item"><h4><i class="fas fa-microchip"></i> CPU</h4><ul>
+                <li><span class="g-warn">Warning</span> load &gt; 80%, temp &gt; 70 °C, or throttling</li>
+                <li><span class="g-alert">Critical</span> load &gt; 95%, temp &gt; 80 °C, or under-voltage</li></ul></div>
+            <div class="sh-guide__item"><h4><i class="fas fa-memory"></i> Memory &amp; Disk</h4><ul>
+                <li><span class="g-warn">Warning</span> usage &gt; 85% (RAM, disk, or inodes)</li>
+                <li><span class="g-alert">Critical</span> usage &gt; 95%</li></ul></div>
+            <div class="sh-guide__item"><h4><i class="fas fa-network-wired"></i> Network</h4><ul>
+                <li><span class="g-warn">Warning</span> packet loss &gt; 2%</li>
+                <li><span class="g-alert">Critical</span> link down or loss &gt; 10%</li></ul></div>
+            <div class="sh-guide__item"><h4><i class="fas fa-tower-broadcast"></i> MQTT service</h4><ul>
+                <li><span class="g-warn">Warning</span> clock not NTP-synced, or latency &gt; 2 s</li>
+                <li><span class="g-alert">Critical</span> publisher service not running</li></ul></div>
+            <div class="sh-guide__item"><h4><i class="fas fa-database"></i> Database</h4><ul>
+                <li><span class="g-warn">Warning</span> reachable but no writes in 10 min</li>
+                <li><span class="g-alert">Critical</span> unreachable</li></ul></div>
+            <div class="sh-guide__item"><h4><i class="fas fa-wifi"></i> Connectivity</h4><ul>
+                <li><span class="g-ok">Online</span> &lt; 2 min · <span class="g-warn">Stale</span> 2–10 min · <span class="g-alert">Offline</span> &gt; 10 min</li></ul></div>
+        </div>
+    </details>
+
+    <!-- per-node infrastructure -->
+    @if (Model.Nodes.Count == 0)
+    {
+        <div class="sh-empty"><i class="fas fa-circle-info"></i><p>No Pi nodes registered, or telemetry is unavailable.</p></div>
+    }
+    else
+    {
+        <section class="sh-grid">
+            @foreach (var node in Model.Nodes)
+            {
+                <article class="sh-card sh-card--@HealthUi.Mod(node.Overall)" data-shelter="@node.ShelterCode" data-lastseen="@IsoUtc(node.LastSeenUtc)">
+                    <header class="sh-card__head">
+                        <div class="sh-card__title"><i class="fas fa-server"></i> <span>@node.ShelterName.ToUpper()</span> <small class="sh-card__code">@node.ShelterCode</small></div>
+                        <span class="sh-badge @HealthUi.Mod(node.Overall)" id="sh-overall-@node.ShelterCode">@HealthUi.Label(node.Overall)</span>
+                    </header>
+
+                    <div class="sh-card__pi">
+                        <i class="fab fa-raspberry-pi"></i> Raspberry Pi@(node.Latest != null && !string.IsNullOrWhiteSpace(node.Latest.IpAddress) ? " · " + node.Latest.IpAddress : (node.Latest != null && !string.IsNullOrWhiteSpace(node.Latest.Hostname) ? " · " + node.Latest.Hostname : ""))
+                    </div>
+
+                    <div class="sh-card__meta">
+                        <span class="sh-conn @HealthUi.ConnMod(node.Connectivity)" id="sh-conn-@node.ShelterCode">
+                            <span class="sh-conn__dot"></span><span class="sh-conn__txt">@HealthUi.ConnLabel(node.Connectivity)</span>
+                        </span>
+                        <span class="sh-lastseen" id="sh-lastseen-@node.ShelterCode" data-lastseen="@IsoUtc(node.LastSeenUtc)">
+                            @(node.LastSeenUtc == null ? "No data yet" : "Last seen " + node.LastSeenUtc.Value.ToLocalTime().ToString("HH:mm:ss"))
+                        </span>
+                    </div>
+
+                    <div class="sh-subs">
+                        @foreach (var c in node.Components())
+                        {
+                            <div class="sh-sub">
+                                <div class="sh-sub__icon @HealthUi.Mod(c.State)"><i class="fas @c.Icon"></i></div>
+                                <div class="sh-sub__body">
+                                    <div class="sh-sub__name">@c.Name</div>
+                                    <div class="sh-sub__summary" id="sh-@(c.Key)-sum-@node.ShelterCode">@c.Summary</div>
+                                </div>
+                                <div class="sh-sub__state">
+                                    <span class="dot @HealthUi.Dot(c.State)" id="sh-@(c.Key)-dot-@node.ShelterCode"></span>
+                                    <span class="sh-sub__label @HealthUi.Mod(c.State)" id="sh-@(c.Key)-@node.ShelterCode">@HealthUi.Label(c.State)</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <a class="sh-card__link" asp-action="Shelter" asp-route-shelterCode="@node.ShelterCode">
+                        View node details <i class="fas fa-arrow-right"></i>
+                    </a>
+                </article>
+            }
+        </section>
+    }
+
+    <p class="sh-foot-note"><i class="fas fa-circle-info"></i> Shows the backend that runs RSMS: each shelter's Raspberry Pi, its MQTT publisher, and the server database &amp; broker. A node that stops reporting is flagged automatically; updates stream live as the Pis publish.</p>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/systemHealth.css" asp-append-version="true" />
+    <script src="~/lib/microsoft-signalr/signalr.js"></script>
+    <script src="~/js/systemHealth.js" asp-append-version="true"></script>
+}
