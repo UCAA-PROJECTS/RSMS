@@ -157,11 +157,11 @@ namespace RSMS.Services
                             break;
 
                         case "stabilizer":
-                            await HandleStabilizerMessageAsync(payload, shelter, context);
+                            await HandleStabilizerMessageAsync(payload, shelter, context, scope);
                             break;
 
                         case "battery":
-                            await HandleBatteryMessageAsync(payload, shelter, context);
+                            await HandleBatteryMessageAsync(payload, shelter, context, scope);
                             break;
 
                         default:
@@ -195,6 +195,7 @@ namespace RSMS.Services
             }
 
             var shelterStatusService = scope.ServiceProvider.GetRequiredService<IShelterService>();
+            var alertService = scope.ServiceProvider.GetRequiredService<IAlertNotificationService>();
 
                     
             //extract only the relevant data for the "Readings" table
@@ -213,6 +214,7 @@ namespace RSMS.Services
             context.Readings.Add(reading);
             await context.SaveChangesAsync();
             var statusResult = shelterStatusService.Evaluate(reading);
+           
             await _hub.Clients.Group(shelter.ShelterCode).SendAsync("ShelterUpdated", new
             {
                 dto.TimeStamp,
@@ -231,9 +233,20 @@ namespace RSMS.Services
 
             _logger.LogInformation("Environment data updated for shelter {ShelterCode}.", shelter.ShelterCode);
 
+            if (statusResult.OverallStatus != ShelterStatus.Ok)
+            {
+                var details = new Dictionary<string, string>
+                {
+                    ["Temperature"] = $"{reading.Temperature} °C",
+                    ["Humidity"] = $"{reading.Humidity} %",
+                    ["Smoke Detected"] = reading.SmokeDetected ? "Yes" : "No",
+                    ["Intrusion Detected"] = reading.IntrusionDetected ? "Yes" : "No"
+                };
+                await alertService.NotifyAsync(shelter.ShelterCode, shelter.ShelterName, "Environment", statusResult.OverallStatus.ToString(), details, reading.TimeStamp);
+            }
         }
 
-        private async Task HandleStabilizerMessageAsync(string payload, Shelter shelter, ApplicationDbContext context)
+        private async Task HandleStabilizerMessageAsync(string payload, Shelter shelter, ApplicationDbContext context, IServiceScope scope)
         {
             var dto = JsonSerializer.Deserialize<StabilizerReadingDTO>(payload,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -248,6 +261,7 @@ namespace RSMS.Services
             }
 
             var status = EvaluateStabilizerStatus(dto.InputVoltage, dto.OutputVoltage, dto.Current, dto.LoadPercentage);
+            var alertService = scope.ServiceProvider.GetRequiredService<IAlertNotificationService>();
             var reading = new StabilizerReading
             {
                 ShelterCode = shelter.ShelterCode,
@@ -278,6 +292,19 @@ namespace RSMS.Services
             });
 
             _logger.LogInformation("Stabilizer data updated for shelter {ShelterCode}.", shelter.ShelterCode);
+
+            if (status != "Normal")
+            {
+                var details = new Dictionary<string, string>
+                {
+                    ["Input Voltage"] = $"{reading.InputVoltage} V",
+                    ["Output Voltage"] = $"{reading.OutputVoltage} V",
+                    ["Current"] = $"{reading.Current} A",
+                    ["Load"] = $"{reading.LoadPercentage} %"
+                };
+
+              await alertService.NotifyAsync(shelter.ShelterCode, shelter.ShelterName, "Stabilizer", status, details, reading.TimeStamp);
+            }
         }
         private static string EvaluateStabilizerStatus(double inputVoltage, double outputVoltage, double current, double loadPercentage)
         {
@@ -302,7 +329,7 @@ namespace RSMS.Services
         return "Normal";
         }
 
-        private async Task HandleBatteryMessageAsync(string payload, Shelter shelter, ApplicationDbContext context)
+        private async Task HandleBatteryMessageAsync(string payload, Shelter shelter, ApplicationDbContext context, IServiceScope scope)
         {
             var dto = JsonSerializer.Deserialize<BatteryReadingDTO>(payload,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -317,6 +344,7 @@ namespace RSMS.Services
             }
 
             var status = EvaluateBatteryStatus(dto.Voltage, dto.StateOfCharge, dto.Temperature,dto.BackupHoursRemaining);
+            var alertService = scope.ServiceProvider.GetRequiredService<IAlertNotificationService>();
             var reading = new BatteryReading
             {
                 ShelterCode = shelter.ShelterCode,
@@ -347,6 +375,19 @@ namespace RSMS.Services
             });
 
             _logger.LogInformation("Battery data updated for shelter {ShelterCode}.", shelter.ShelterCode);
+
+            if (status != "Healthy")
+            {
+                var details = new Dictionary<string, string>
+                {
+                    ["Voltage"] = $"{reading.Voltage} V",
+                    ["State of Charge"] = $"{reading.StateOfCharge} %",
+                    ["Temperature"] = $"{reading.Temperature} °C",
+                    ["Backup Remaining"] = $"{reading.BackupHoursRemaining} hrs"
+                };
+
+                await alertService.NotifyAsync(shelter.ShelterCode, shelter.ShelterName, "Battery", status, details, reading.TimeStamp);
+            }
         }
         private static string EvaluateBatteryStatus(double voltage, double stateofCharge, double temperature, double backupHoursRemaining)
         {

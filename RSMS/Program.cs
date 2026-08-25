@@ -21,6 +21,10 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IShelterService, ShelterStatusService>();
 builder.Services.AddScoped<IStabilizerService, StabilizerService>();
 builder.Services.AddScoped<IBatteryService, BatteryService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IAlertNotificationService, AlertNotificationService>();
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddMemoryCache();
 builder.Services.AddHostedService<MqttSubscriber>();
 builder.Services.AddSignalR();
 

@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 BROKER_ADDRESS = "localhost"   # change to your MQTT broker IP if needed = 192.168.11.84
 BROKER_PORT = 1883
 SHELTER_CODES = ["LLZ002", "DVOR003", "GP001"]
-PUBLISH_INTERVAL_SECONDS = 5
+PUBLISH_INTERVAL_SECONDS = 10
 QOS_LEVEL = 1
 CONNECT_TIMEOUT_SECONDS = 10
 PUBLISH_TIMEOUT_SECONDS = 5
@@ -85,9 +85,9 @@ def utc_timestamp():
 
 
 def generate_environment_payload(shelter_code):
+    
     temperature = round(random.uniform(18.0, 35.0), 1)
     humidity = round(random.uniform(35.0, 85.0), 1)
-
     # Mostly normal, occasional simulated faults
     smoke_detected = random.random() < 0.05       # 5% chance
     intrusion_detected = random.random() < 0.05   # 5% chance
@@ -107,6 +107,8 @@ def generate_environment_payload(shelter_code):
 # ----------------------------
 
 def generate_stabilizer_payload(shelter_code):
+
+
     # Input voltage varies more because it represents mains supply
     input_voltage = round(random.uniform(205.0, 250.0), 1)
 
@@ -147,6 +149,7 @@ def generate_stabilizer_payload(shelter_code):
 # BATTERY SIMULATION
 # ----------------------------
 def generate_battery_payload(shelter_code):
+
     voltage = round(random.uniform(48.0, 54.5), 1)
     current = round(random.uniform(-10.0, 12.0), 2)
     state_of_charge = round(random.uniform(35.0, 100.0), 0)

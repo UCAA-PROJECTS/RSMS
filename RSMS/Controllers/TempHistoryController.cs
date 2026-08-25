@@ -18,7 +18,7 @@ namespace RSMS.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Temperature(string? shelterCode, string? code)
+        public IActionResult Temperature(string? shelterCode, string? code)
         {
             var selectedShelterCode = (shelterCode ?? code)?.Trim().ToUpperInvariant();
 
@@ -27,19 +27,18 @@ namespace RSMS.Controllers
                 return BadRequest("Shelter code is required.");
             }
 
-            var data = await _context.Readings
-                .Where(r => r.ShelterCode == selectedShelterCode)
-                .OrderByDescending(r => r.TimeStamp)
-                .Select(r => new TemperatureView
-                {
-                    Time = r.TimeStamp,
-                    Value = r.Temperature,
-                })
-                .ToListAsync();
+            //var data = await _context.Readings
+            //    .Where(r => r.ShelterCode == selectedShelterCode)
+            //    .OrderByDescending(r => r.TimeStamp)
+            //    .Select(r => new TemperatureView
+            //    {
+            //        Time = r.TimeStamp,
+            //        Value = r.Temperature,
+            //    })
+            //    .ToListAsync();
 
             ViewBag.ShelterCode = selectedShelterCode;
-            return View(data);
-
+            return View();
         }
 
         //Make the limits mandatory to limit on the amount of data loaded into memory at a time. This is because from the associated
