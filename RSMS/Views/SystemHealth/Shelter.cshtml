@@ -1,0 +1,163 @@
+@model NodeHealth
+@{
+    ViewData["Title"] = "Node Health — " + Model.ShelterName;
+    var shelterCode = Model.ShelterCode;
+    var r = Model.Latest;
+
+    string IsoUtc(DateTime? t)
+    {
+        if (t == null) return "";
+        var v = t.Value;
+        var utc = v.Kind == DateTimeKind.Local ? v.ToUniversalTime() : DateTime.SpecifyKind(v, DateTimeKind.Utc);
+        return utc.ToString("o");
+    }
+    string Up(long s)
+    {
+        if (s <= 0) return "--";
+        var ts = TimeSpan.FromSeconds(s);
+        if (ts.TotalDays >= 1) return $"{(int)ts.TotalDays}d {ts.Hours}h";
+        if (ts.TotalHours >= 1) return $"{ts.Hours}h {ts.Minutes}m";
+        return $"{ts.Minutes}m";
+    }
+
+    var trend = new { labels = Model.TrendLabels, cpu = Model.CpuTrend, mem = Model.MemTrend, latency = Model.LatencyTrend };
+}
+
+<div class="ucaa-header">
+    <div class="ucaa-left"><img src="~/images/ucaa.png" alt="UCAA Logo" class="ucaa-logo" /></div>
+    <div class="ucaa-center"><h1 class="system-title">SYSTEM HEALTH</h1></div>
+    <div class="ucaa-right"><a asp-controller="Dashboard" asp-action="Index" class="sh-back"><i class="fas fa-arrow-left"></i> Dashboard</a></div>
+</div>
+
+<div class="sh-tabs">
+    <a class="sh-tab" asp-controller="SystemHealth" asp-action="Index"><i class="fas fa-gauge-high"></i> Live Overview</a>
+    <a class="sh-tab" asp-controller="SystemHealth" asp-action="History"><i class="fas fa-chart-line"></i> Health History</a>
+    <a class="sh-tab" asp-controller="SystemHealth" asp-action="Sensors"><i class="fas fa-microchip"></i> Sensor Health</a>
+</div>
+
+<div class="sh-page" data-shelter="@shelterCode">
+
+    <div class="sh-detail__top">
+        <div class="sh-detail__heading">
+            <h2><i class="fas fa-server"></i> @Model.ShelterName.ToUpper() <small>@Model.ShelterCode</small></h2>
+            <div class="sh-detail__sub">Raspberry Pi node — backend health</div>
+        </div>
+        <div class="sh-detail__status">
+            <span class="sh-badge @HealthUi.Mod(Model.Overall)" id="shd-overall">@HealthUi.Label(Model.Overall)</span>
+            <span class="sh-conn @HealthUi.ConnMod(Model.Connectivity)" id="shd-conn"><span class="sh-conn__dot"></span><span class="sh-conn__txt">@HealthUi.ConnLabel(Model.Connectivity)</span></span>
+            <span class="sh-lastseen" id="shd-lastseen" data-lastseen="@IsoUtc(Model.LastSeenUtc)">@(Model.LastSeenUtc == null ? "No data yet" : "Last seen " + Model.LastSeenUtc.Value.ToLocalTime().ToString("MMM d · HH:mm:ss"))</span>
+        </div>
+    </div>
+
+    <div class="sh-detail__actions">
+        <a asp-controller="SystemHealth" asp-action="Index" class="sh-back"><i class="fas fa-arrow-left"></i> All nodes</a>
+    </div>
+
+    @if (Model.HasError)
+    {
+        <div class="sh-banner sh-banner--error"><i class="fas fa-triangle-exclamation"></i><span>Some node data could not be loaded.</span></div>
+    }
+
+    @if (!Model.HasData || r == null)
+    {
+        <div class="sh-empty"><i class="fas fa-plug-circle-xmark"></i><p>This Pi has not reported yet. Run the publisher on the Pi (<code>pi_health_publisher.sh</code>) and apply the database migration to start collecting node health.</p></div>
+    }
+    else
+    {
+        <div class="sh-pi-id">
+            <div class="sh-pi-id__icon"><i class="fab fa-raspberry-pi"></i></div>
+            <div class="sh-pi-id__main">
+                <div class="sh-pi-id__title">Raspberry Pi node</div>
+                <div class="sh-pi-id__grid">
+                    <div><span>Model</span><b id="shd-id-model">@(string.IsNullOrWhiteSpace(r.PiModel) ? "—" : r.PiModel)</b></div>
+                    <div><span>Hostname</span><b id="shd-id-host">@(string.IsNullOrWhiteSpace(r.Hostname) ? "—" : r.Hostname)</b></div>
+                    <div><span>IP address</span><b id="shd-id-ip">@(string.IsNullOrWhiteSpace(r.IpAddress) ? "—" : r.IpAddress)</b></div>
+                    <div><span>Operating system</span><b id="shd-id-os">@(string.IsNullOrWhiteSpace(r.OsVersion) ? "—" : r.OsVersion)</b></div>
+                    <div><span>Kernel</span><b id="shd-id-kernel">@(string.IsNullOrWhiteSpace(r.KernelVersion) ? "—" : r.KernelVersion)</b></div>
+                    <div><span>CPU cores</span><b id="shd-id-cores">@(r.CpuCores > 0 ? r.CpuCores.ToString() : "—")</b></div>
+                    <div><span>Uptime</span><b id="shd-id-uptime">@Up(r.UptimeSeconds)</b></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sh-detail__grid">
+
+            <!-- MQTT SERVICE -->
+            <div class="sh-dcard sh-dcard--@HealthUi.Mod(Model.Mqtt.State)" data-sub="mqtt">
+                <div class="sh-dcard__head"><div class="sh-dcard__title"><i class="fas fa-tower-broadcast"></i> MQTT Service</div><span class="sh-badge @HealthUi.Mod(Model.Mqtt.State)" id="shd-mqtt-badge">@HealthUi.Label(Model.Mqtt.State)</span></div>
+                <div class="sh-dcard__metrics">
+                    <div class="sh-metric"><span class="sh-metric__label">Publish latency</span><span class="sh-metric__value" id="shd-mqtt-latency">@r.PublishLatencyMs.ToString("0") ms</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Publish rate</span><span class="sh-metric__value" id="shd-mqtt-rate">@(Model.PublishRatePerSec > 0 ? Model.PublishRatePerSec.ToString("0.##") + " /s" : "--")</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Failed publishes</span><span class="sh-metric__value" id="shd-mqtt-failed">@r.FailedPublishCount.ToString("N0")</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Publisher service</span><span class="sh-metric__value" id="shd-mqtt-service">@(r.PublisherServiceActive ? "Running" : "Stopped")</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Clock (NTP)</span><span class="sh-metric__value" id="shd-mqtt-clock">@(r.ClockSynced ? "Synced" : "NOT synced")</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Last publish</span><span class="sh-metric__value" id="shd-mqtt-lastpub">@(Model.LastSeenUtc?.ToLocalTime().ToString("HH:mm:ss") ?? "--")</span></div>
+                </div>
+                <div class="sh-chart-wrap sh-chart-wrap--sm"><canvas id="latencyChart"></canvas></div>
+            </div>
+
+            <!-- CPU -->
+            <div class="sh-dcard sh-dcard--@HealthUi.Mod(Model.Cpu.State)" data-sub="cpu">
+                <div class="sh-dcard__head"><div class="sh-dcard__title"><i class="fas fa-microchip"></i> CPU</div><span class="sh-badge @HealthUi.Mod(Model.Cpu.State)" id="shd-cpu-badge">@HealthUi.Label(Model.Cpu.State)</span></div>
+                <div class="sh-dcard__metrics">
+                    <div class="sh-metric"><span class="sh-metric__label">Load</span><span class="sh-metric__value" id="shd-cpu-load">@r.CpuLoad.ToString("0") %</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Temperature</span><span class="sh-metric__value" id="shd-cpu-temp">@r.CpuTemperature.ToString("0.0") °C</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Clock freq</span><span class="sh-metric__value" id="shd-cpu-clock">@r.ClockFrequencyMhz.ToString("0") MHz</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Uptime</span><span class="sh-metric__value" id="shd-cpu-uptime">@Up(r.UptimeSeconds)</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Power</span><span class="sh-metric__value" id="shd-cpu-power">@(r.UnderVoltage ? "Under-voltage" : "Normal")</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Throttling</span><span class="sh-metric__value" id="shd-cpu-throttle">@(r.Throttled ? "Yes" : "No")</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">CPU cores</span><span class="sh-metric__value" id="shd-cpu-cores">@(r.CpuCores > 0 ? r.CpuCores.ToString() : "--")</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Load avg 1/5/15</span><span class="sh-metric__value" id="shd-cpu-loadavg">@r.Load1.ToString("0.00") / @r.Load5.ToString("0.00") / @r.Load15.ToString("0.00")</span></div>
+                </div>
+                <div class="sh-chart-wrap sh-chart-wrap--sm"><canvas id="cpuChart"></canvas></div>
+            </div>
+
+            <!-- MEMORY -->
+            <div class="sh-dcard sh-dcard--@HealthUi.Mod(Model.Memory.State)" data-sub="memory">
+                <div class="sh-dcard__head"><div class="sh-dcard__title"><i class="fas fa-memory"></i> Memory</div><span class="sh-badge @HealthUi.Mod(Model.Memory.State)" id="shd-mem-badge">@HealthUi.Label(Model.Memory.State)</span></div>
+                <div class="sh-dcard__metrics">
+                    <div class="sh-metric"><span class="sh-metric__label">Total</span><span class="sh-metric__value" id="shd-mem-total">@r.MemoryTotalMb.ToString("0") MB</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Used</span><span class="sh-metric__value" id="shd-mem-used">@r.MemoryUsedMb.ToString("0") MB</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Available</span><span class="sh-metric__value" id="shd-mem-avail">@r.MemoryAvailableMb.ToString("0") MB</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Swap used</span><span class="sh-metric__value" id="shd-mem-swap">@r.SwapUsedMb.ToString("0") MB</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Used</span><span class="sh-metric__value" id="shd-mem-pct">@r.MemoryUsedPercent.ToString("0") %</span></div>
+                </div>
+                <div class="sh-chart-wrap sh-chart-wrap--sm"><canvas id="memChart"></canvas></div>
+            </div>
+
+            <!-- DISK -->
+            <div class="sh-dcard sh-dcard--@HealthUi.Mod(Model.Disk.State)" data-sub="disk">
+                <div class="sh-dcard__head"><div class="sh-dcard__title"><i class="fas fa-hard-drive"></i> Disk</div><span class="sh-badge @HealthUi.Mod(Model.Disk.State)" id="shd-disk-badge">@HealthUi.Label(Model.Disk.State)</span></div>
+                <div class="sh-dcard__metrics">
+                    <div class="sh-metric"><span class="sh-metric__label">Total</span><span class="sh-metric__value" id="shd-disk-total">@r.DiskTotalGb.ToString("0.#") GB</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Used</span><span class="sh-metric__value" id="shd-disk-used">@r.DiskUsedGb.ToString("0.#") GB</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Free</span><span class="sh-metric__value" id="shd-disk-free">@r.DiskFreeGb.ToString("0.#") GB</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Used</span><span class="sh-metric__value" id="shd-disk-pct">@r.DiskUsedPercent.ToString("0") %</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Inodes used</span><span class="sh-metric__value" id="shd-disk-inodes">@r.InodesUsedPercent.ToString("0") %</span></div>
+                </div>
+            </div>
+
+            <!-- NETWORK -->
+            <div class="sh-dcard sh-dcard--@HealthUi.Mod(Model.Network.State)" data-sub="network">
+                <div class="sh-dcard__head"><div class="sh-dcard__title"><i class="fas fa-network-wired"></i> Network</div><span class="sh-badge @HealthUi.Mod(Model.Network.State)" id="shd-net-badge">@HealthUi.Label(Model.Network.State)</span></div>
+                <div class="sh-dcard__metrics">
+                    <div class="sh-metric"><span class="sh-metric__label">Throughput</span><span class="sh-metric__value" id="shd-net-throughput">@r.NetThroughputKbps.ToString("0") KB/s</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Packets sent</span><span class="sh-metric__value" id="shd-net-sent">@r.PacketsSent.ToString("N0")</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Received</span><span class="sh-metric__value" id="shd-net-recv">@r.PacketsReceived.ToString("N0")</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Lost</span><span class="sh-metric__value" id="shd-net-lost">@r.PacketsLost.ToString("N0")</span></div>
+                    <div class="sh-metric"><span class="sh-metric__label">Loss</span><span class="sh-metric__value" id="shd-net-loss">@r.PacketLossPercent.ToString("0.#") %</span></div>
+                </div>
+            </div>
+        </div>
+
+        <script id="shd-trend" type="application/json">@Json.Serialize(trend)</script>
+    }
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/systemHealth.css" asp-append-version="true" />
+    <script>window.shelterCode = "@shelterCode";</script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/lib/microsoft-signalr/signalr.js"></script>
+    <script src="~/js/systemHealthShelter.js" asp-append-version="true"></script>
+}

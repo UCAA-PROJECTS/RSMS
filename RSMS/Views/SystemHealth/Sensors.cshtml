@@ -1,0 +1,133 @@
+@model SystemInstrumentsView
+@{
+    ViewData["Title"] = "Sensor Health";
+
+    string IsoUtc(DateTime? t)
+    {
+        if (t == null) return "";
+        var v = t.Value;
+        var utc = v.Kind == DateTimeKind.Local ? v.ToUniversalTime() : DateTime.SpecifyKind(v, DateTimeKind.Utc);
+        return utc.ToString("o");
+    }
+    string SeenText(DateTime? t) => t == null ? "no data" : t.Value.ToLocalTime().ToString("HH:mm:ss");
+}
+
+<div class="ucaa-header">
+    <div class="ucaa-left"><img src="~/images/ucaa.png" alt="UCAA Logo" class="ucaa-logo" /></div>
+    <div class="ucaa-center"><h1 class="system-title">SYSTEM HEALTH</h1></div>
+    <div class="ucaa-right"><a asp-controller="Dashboard" asp-action="Index" class="sh-back"><i class="fas fa-arrow-left"></i> Dashboard</a></div>
+</div>
+
+<div class="sh-tabs">
+    <a class="sh-tab" asp-controller="SystemHealth" asp-action="Index"><i class="fas fa-gauge-high"></i> Live Overview</a>
+    <a class="sh-tab" asp-controller="SystemHealth" asp-action="History"><i class="fas fa-chart-line"></i> Health History</a>
+    <a class="sh-tab active" asp-controller="SystemHealth" asp-action="Sensors"><i class="fas fa-microchip"></i> Sensor Health</a>
+</div>
+
+<div class="sh-page">
+
+    <div class="sh-history-head">
+        <div>
+            <h2 class="sh-history-title">Sensor &amp; instrument health</h2>
+            <p class="sh-history-sub">The working condition of every device taking readings — independent of the values they report.</p>
+        </div>
+    </div>
+
+    @if (!Model.DataStoreReachable)
+    {
+        <div class="sh-banner sh-banner--error"><i class="fas fa-triangle-exclamation"></i><span>@Model.ErrorMessage</span></div>
+    }
+
+    <section class="sh-stats sh-stats--4">
+        <div class="sh-stat">
+            <div class="sh-stat__num">@Model.Total</div>
+            <div class="sh-stat__lbl"><i class="fas fa-microchip"></i> Instruments</div>
+        </div>
+        <div class="sh-stat sh-stat--ok">
+            <div class="sh-stat__num" id="inst-c-online">@Model.OnlineCount</div>
+            <div class="sh-stat__lbl">Online</div>
+        </div>
+        <div class="sh-stat sh-stat--alert">
+            <div class="sh-stat__num" id="inst-c-faulty">@Model.FaultyCount</div>
+            <div class="sh-stat__lbl">Faulty</div>
+        </div>
+        <div class="sh-stat">
+            <div class="sh-stat__num" id="inst-c-offline">@(Model.OfflineCount + Model.StaleCount)</div>
+            <div class="sh-stat__lbl">Offline / stale</div>
+        </div>
+    </section>
+
+    <details class="sh-guide">
+        <summary><i class="fas fa-circle-question"></i> What the conditions mean</summary>
+        <div class="sh-guide__grid">
+            <div class="sh-guide__item"><h4><i class="fas fa-circle-check"></i> States</h4><ul>
+                <li><span class="g-ok">ONLINE</span> reporting &lt; 2 min ago with a valid reading</li>
+                <li><span class="g-warn">STALE</span> last reading 2–10 minutes old</li>
+                <li><span class="g-alert">OFFLINE</span> no reading for &gt; 10 minutes</li>
+                <li><span class="g-alert">FAULTY</span> reporting, but the value is out of physical range or stuck</li>
+                <li><span class="g-ok" style="background:#eef0f3;color:#8a8f98">NO DATA</span> the instrument has never reported</li>
+            </ul></div>
+            <div class="sh-guide__item"><h4><i class="fas fa-ruler"></i> Plausibility checks</h4><ul>
+                <li>Temperature valid −40…85 °C · Humidity 0–100 %</li>
+                <li>Battery monitor: voltage &gt; 0 and SOC 0–100 %</li>
+                <li>Stabilizer monitor: a non-zero voltage reading</li>
+                <li>Gateway: network link up (under-voltage / throttling flagged as a note)</li>
+            </ul></div>
+        </div>
+    </details>
+
+    @if (Model.Shelters.Count == 0)
+    {
+        <div class="sh-empty"><i class="fas fa-circle-info"></i><p>No shelters registered, or telemetry is unavailable.</p></div>
+    }
+    else
+    {
+        <section class="sh-grid">
+            @foreach (var sh in Model.Shelters)
+            {
+                <article class="sh-inst-card" data-shelter="@sh.ShelterCode">
+                    <header class="sh-inst-card__head">
+                        <div class="sh-card__title"><i class="fas fa-warehouse"></i> <span>@sh.ShelterName.ToUpper()</span> <small class="sh-card__code">@sh.ShelterCode</small></div>
+                        <span class="sh-inst-card__count"><span id="inst-ok-@sh.ShelterCode">@sh.Healthy</span>/@sh.Instruments.Count online</span>
+                    </header>
+
+                    @if (sh.HasError)
+                    {
+                        <div class="sh-banner sh-banner--error sh-banner--inline"><i class="fas fa-triangle-exclamation"></i><span>Instrument data unavailable for this shelter.</span></div>
+                    }
+
+                    <div class="sh-inst-list">
+                        @foreach (var inst in sh.Instruments)
+                        {
+                            <div class="sh-inst" data-shelter="@sh.ShelterCode" data-inst="@inst.Key" data-stream="@inst.StreamKey" data-lastseen="@IsoUtc(inst.LastSeenUtc)">
+                                <div class="sh-inst__icon"><i class="fas @inst.Icon"></i></div>
+                                <div class="sh-inst__main">
+                                    <div class="sh-inst__top">
+                                        <span class="sh-inst__name">@inst.Name</span>
+                                        <span class="sh-inst__state">
+                                            <span class="dot @InstrumentUi.Dot(inst.State)" id="inst-dot-@sh.ShelterCode-@inst.Key"></span>
+                                            <span class="inst-pill @InstrumentUi.Mod(inst.State)" id="inst-state-@sh.ShelterCode-@inst.Key">@InstrumentUi.Label(inst.State)</span>
+                                        </span>
+                                    </div>
+                                    <div class="sh-inst__meta">
+                                        <span class="sh-inst__val" id="inst-val-@sh.ShelterCode-@inst.Key">@inst.Value</span>
+                                        <span class="sh-inst__seen" id="inst-seen-@sh.ShelterCode-@inst.Key">@SeenText(inst.LastSeenUtc)</span>
+                                    </div>
+                                    <div class="sh-inst__note" id="inst-note-@sh.ShelterCode-@inst.Key">@inst.Note</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </article>
+            }
+        </section>
+    }
+
+    <p class="sh-foot-note"><i class="fas fa-circle-info"></i> Conditions are derived from live telemetry: a device that stops reporting or returns an out-of-range value is flagged here even when its last value looked normal.</p>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/systemHealth.css" asp-append-version="true" />
+    <script src="~/lib/microsoft-signalr/signalr.js"></script>
+    <script src="~/js/systemHealthSensors.js" asp-append-version="true"></script>
+}

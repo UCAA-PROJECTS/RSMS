@@ -1,0 +1,138 @@
+@model SystemHealthHistory
+@{
+    ViewData["Title"] = "System Health — History";
+
+    string RangeClass(string r) => Model.Range == r ? "active" : "";
+
+    var chartPayload = new
+    {
+        unit = Model.BucketUnit,
+        buckets = Model.Buckets,
+        series = Model.Series.Select(s => new { code = s.ShelterCode, name = s.ShelterName, data = s.Incidents }),
+        scores = Model.Shelters.Select(s => new { name = s.ShelterName, score = s.HealthScore })
+    };
+}
+
+<div class="ucaa-header">
+    <div class="ucaa-left"><img src="~/images/ucaa.png" alt="UCAA Logo" class="ucaa-logo" /></div>
+    <div class="ucaa-center"><h1 class="system-title">SYSTEM HEALTH</h1></div>
+    <div class="ucaa-right"><a asp-controller="Dashboard" asp-action="Index" class="sh-back"><i class="fas fa-arrow-left"></i> Dashboard</a></div>
+</div>
+
+<div class="sh-tabs">
+    <a class="sh-tab" asp-controller="SystemHealth" asp-action="Index"><i class="fas fa-gauge-high"></i> Live Overview</a>
+    <a class="sh-tab active" asp-controller="SystemHealth" asp-action="History"><i class="fas fa-chart-line"></i> Health History</a>
+    <a class="sh-tab" asp-controller="SystemHealth" asp-action="Sensors"><i class="fas fa-microchip"></i> Sensor Health</a>
+</div>
+
+<div class="sh-page">
+
+    <div class="sh-history-head">
+        <div>
+            <h2 class="sh-history-title">Health over time</h2>
+            <p class="sh-history-sub">Compare shelter health and incident trends across a period. @Model.RangeLabel · @Model.FromUtc.ToLocalTime().ToString("MMM d, HH:mm") → @Model.ToUtc.ToLocalTime().ToString("MMM d, HH:mm")</p>
+        </div>
+        <div class="sh-range">
+            <a class="sh-range__btn @RangeClass("24h")" asp-action="History" asp-route-range="24h">24 hours</a>
+            <a class="sh-range__btn @RangeClass("7d")" asp-action="History" asp-route-range="7d">7 days</a>
+            <a class="sh-range__btn @RangeClass("30d")" asp-action="History" asp-route-range="30d">30 days</a>
+        </div>
+    </div>
+
+    @if (!Model.DataStoreReachable)
+    {
+        <div class="sh-banner sh-banner--error"><i class="fas fa-triangle-exclamation"></i><span>@Model.ErrorMessage</span></div>
+    }
+
+    <section class="sh-stats sh-stats--4">
+        <div class="sh-stat">
+            <div class="sh-stat__num">@Model.AvgHealthScore<span class="sh-stat__sep">%</span></div>
+            <div class="sh-stat__lbl"><i class="fas fa-heart-pulse"></i> Avg health score</div>
+        </div>
+        <div class="sh-stat sh-stat--alert">
+            <div class="sh-stat__num">@Model.TotalIncidents</div>
+            <div class="sh-stat__lbl">Incidents</div>
+        </div>
+        <div class="sh-stat sh-stat--warning">
+            <div class="sh-stat__num">@Model.TotalWarnings</div>
+            <div class="sh-stat__lbl">Warnings</div>
+        </div>
+        <div class="sh-stat">
+            <div class="sh-stat__num sh-stat__num--sm">@(Model.MostIncidents?.ShelterName ?? "—")</div>
+            <div class="sh-stat__lbl">Most incidents</div>
+        </div>
+    </section>
+
+    @if (!Model.AnyData)
+    {
+        <div class="sh-empty">
+            <i class="fas fa-chart-area"></i>
+            <p>No readings recorded in this period yet. Once shelters report data (run the sensors / simulator), trends will appear here.</p>
+        </div>
+    }
+    else
+    {
+        <div class="sh-history-grid">
+            <div class="sh-chart-card">
+                <div class="sh-chart-card__head"><h3><i class="fas fa-chart-line"></i> Incidents over time</h3><span class="sh-chart-card__hint">Alert-level events per @Model.BucketUnit</span></div>
+                <div class="sh-chart-wrap"><canvas id="incidentsChart"></canvas></div>
+            </div>
+            <div class="sh-chart-card">
+                <div class="sh-chart-card__head"><h3><i class="fas fa-ranking-star"></i> Health score by shelter</h3><span class="sh-chart-card__hint">% of readings rated OK</span></div>
+                <div class="sh-chart-wrap"><canvas id="scoreChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="sh-table-card">
+            <div class="sh-table-card__head"><h3><i class="fas fa-table-list"></i> Shelter comparison</h3></div>
+            <div class="sh-table-scroll">
+                <table class="sh-table">
+                    <thead>
+                        <tr>
+                            <th>Shelter</th>
+                            <th>Readings</th>
+                            <th>Temp alerts</th>
+                            <th>Humidity alerts</th>
+                            <th>Smoke</th>
+                            <th>Intrusion</th>
+                            <th>Battery crit.</th>
+                            <th>Stabilizer crit.</th>
+                            <th>Gateway crit.</th>
+                            <th>Warnings</th>
+                            <th>Incidents</th>
+                            <th>Health</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model.Shelters)
+                        {
+                            <tr>
+                                <td class="sh-table__name"><i class="fas fa-warehouse"></i> @s.ShelterName <small>@s.ShelterCode</small></td>
+                                <td>@s.TotalReadings.ToString("N0")</td>
+                                <td>@s.TempAlerts</td>
+                                <td>@s.HumidityAlerts</td>
+                                <td>@s.SmokeEvents</td>
+                                <td>@s.IntrusionEvents</td>
+                                <td>@s.BatteryCritical</td>
+                                <td>@s.StabilizerCritical</td>
+                                <td>@s.GatewayCritical</td>
+                                <td>@s.Warnings</td>
+                                <td><strong>@s.Incidents</strong></td>
+                                <td><span class="sh-badge @HealthUi.Mod(s.ScoreState)">@(s.HasData ? s.HealthScore.ToString("0.#") + "%" : "—")</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="sh-table-note"><i class="fas fa-circle-info"></i> Extremes this period: @foreach (var s in Model.Shelters.Where(x => x.HasData)) {<span class="sh-chip">@s.ShelterName: max @((s.MaxTemperature ?? 0).ToString("0.0"))°C · min SOC @((s.MinStateOfCharge ?? 0).ToString("0"))%</span>}</p>
+        </div>
+    }
+
+    <script id="sh-hist-data" type="application/json">@Json.Serialize(chartPayload)</script>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/systemHealth.css" asp-append-version="true" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/js/systemHealthHistory.js" asp-append-version="true"></script>
+}
